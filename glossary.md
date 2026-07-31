@@ -26,17 +26,31 @@ Plain-English definitions, in roughly the order we met them. Updated each sessio
 
 ---
 
-## Session 2 preview — Git & GitHub
+## Session 2 — Git
 
 **Git** — A tool that tracks every change ever made to a project's files. The universal standard for managing code.
 
 **Repo (repository)** — A project folder being tracked by git, including its full change history. "It's in the repo" = "the code officially exists in our shared project."
 
-**Commit** — One saved snapshot of the project, with a note about what changed. Projects accumulate thousands of commits; they're the project's paper trail.
+**`git init`** — Run once per project to start tracking it. Creates a hidden `.git` folder where all history is stored — turns a pile of files into a repo.
 
-**Push / pull** — Push = send your commits to the online copy (e.g. GitHub). Pull = fetch others' commits down to your machine. This is how teams stay in sync.
+**Commit** — One saved snapshot of the project, with a note about what changed. Projects accumulate thousands of commits; they're the project's paper trail. Each gets a unique ID (a hash like `4868161`).
 
-**GitHub** — The dominant website for hosting repos online. Backup, collaboration, and increasingly the hub where code review and deployment kick off.
+**Staging (`git add`)** — The step before committing: choosing which changes go into the next snapshot. Like putting files in a box before sealing it. `git add .` stages everything. The two-step stage-then-commit lets you snapshot some changes but not others.
+
+**`git status`** — Shows what's changed since your last commit: untracked files (git isn't watching them yet) and modified files (changed since last snapshot).
+
+**`git diff`** — Shows the exact lines that changed — removed lines marked `-`, added lines marked `+`. How you review a change before committing it.
+
+**`git log`** — The timeline of commits, newest first. `--oneline` gives the short version.
+
+**Branch / `main`** — A line of development. `main` is the default one. Teams create separate branches to work on features without disturbing `main`, then merge them back.
+
+**HEAD** — A pointer to where you currently are in the history (usually the latest commit on your branch).
+
+**Push / pull** — Push = send your commits to the online copy (e.g. GitHub). Pull = fetch others' commits down to your machine. This is how teams stay in sync. *(Session 3.)*
+
+**GitHub** — The dominant website for hosting repos online. Backup, collaboration, and increasingly the hub where code review and deployment kick off. *(Session 3.)*
 
 ---
 

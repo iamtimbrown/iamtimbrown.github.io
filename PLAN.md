@@ -19,12 +19,14 @@ Built index.html, served it with `python3 -m http.server 8000`, viewed at
 localhost:8000, edited with TextEdit, learned the edit → save → refresh loop.
 Key concepts: terminal, localhost, ports, what a server actually is.
 
-### ▶️ Session 2 — Git (NEXT — in progress)
-Track the project with git: snapshots (commits) of code over time.
-First step: run `git --version` in Terminal to check it's installed.
-Boardroom layer: how software teams manage and ship code.
+### ✅ Session 2 — Git (DONE)
+Turned the project into a git repo (`git init`) and learned the snapshot loop:
+edit → `git status` → `git diff` → `git add` → `git commit`. Made two commits
+(initial commit of all three files; then a fix to a broken SMH link). Read
+history with `git log --oneline`. Set global name/email for commits.
+Key concepts: repo, commit, staging, diff, HEAD/branch, main.
 
-### Session 3 — GitHub
+### ▶️ Session 3 — GitHub (NEXT)
 Push the repo online. Free account at github.com.
 Boardroom layer: repos as a team's source of truth; where code review and
 deployment start.
