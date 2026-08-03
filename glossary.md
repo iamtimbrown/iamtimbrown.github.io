@@ -48,9 +48,25 @@ Plain-English definitions, in roughly the order we met them. Updated each sessio
 
 **HEAD** — A pointer to where you currently are in the history (usually the latest commit on your branch).
 
-**Push / pull** — Push = send your commits to the online copy (e.g. GitHub). Pull = fetch others' commits down to your machine. This is how teams stay in sync. *(Session 3.)*
+**Push / pull** — Push = send your commits to the online copy (e.g. GitHub). Pull = fetch others' commits down to your machine. This is how teams stay in sync.
 
-**GitHub** — The dominant website for hosting repos online. Backup, collaboration, and increasingly the hub where code review and deployment kick off. *(Session 3.)*
+**GitHub** — The dominant website for hosting repos online. Backup, collaboration, and increasingly the hub where code review and deployment kick off.
+
+---
+
+## Session 3 — GitHub
+
+**Remote** — An online copy of your repo that your local repo is linked to. You push commits up to it and pull commits down from it. A repo can have several, but usually just one.
+
+**`origin`** — The standard nickname for your main remote (your GitHub repo). Set once with `git remote add origin <url>`; after that you just refer to `origin`. Nothing special about the word — it's convention.
+
+**`git push` / tracking** — Sends your local commits up to the remote. The first push used `git push -u origin main`: `-u` links local `main` to `origin/main` so future pushes are just `git push`. "Tracking" = that permanent link between your branch and its online twin.
+
+**Personal access token (PAT)** — A long generated string that acts as a password for git operations. GitHub stopped accepting account passwords in 2021. A token is scoped (we used `repo`) and expiring (90 days) and revocable — so a leak is contained. This is the same least-privilege idea as API keys everywhere in software.
+
+**Source of truth** — The one canonical copy of a project that everyone trusts and syncs to (your GitHub repo). "It's merged to main on GitHub" = it officially exists. The reference point for backups, code review, and deployment.
+
+**`username.github.io`** — GitHub's magic repo name: a repo named exactly this becomes a free live website at that same address (via GitHub Pages). Ours is `iamtimbrown.github.io` — set up for Session 4.
 
 ---
 

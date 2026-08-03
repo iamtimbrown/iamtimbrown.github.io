@@ -26,13 +26,18 @@ edit → `git status` → `git diff` → `git add` → `git commit`. Made two co
 history with `git log --oneline`. Set global name/email for commits.
 Key concepts: repo, commit, staging, diff, HEAD/branch, main.
 
-### ▶️ Session 3 — GitHub (NEXT)
-Push the repo online. Free account at github.com.
-Boardroom layer: repos as a team's source of truth; where code review and
-deployment start.
+### ✅ Session 3 — GitHub (DONE)
+Pushed the repo online. Created a free github.com account (username:
+iamtimbrown), made an empty public repo named `iamtimbrown.github.io`,
+connected it with `git remote add origin`, and pushed with `git push -u origin
+main`. Hit the auth wall (passwords no longer work) and generated a personal
+access token to authenticate. Repo now lives at
+github.com/iamtimbrown/iamtimbrown.github.io.
+Key concepts: remote, origin, push/pull, personal access token, source of truth.
 
-### Session 4 — Deploy (GitHub Pages)
-Turn the repo into a live site at timbrown.github.io. Real, shareable URL.
+### ▶️ Session 4 — Deploy (GitHub Pages) (NEXT)
+Turn the repo into a live site at iamtimbrown.github.io. Real, shareable URL.
+The repo is already named correctly for this — should be one settings switch.
 Boardroom layer: what "going live" involves; environments.
 
 ### Session 5 — Call Claude from code ⭐ the AI layer begins
