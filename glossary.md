@@ -70,6 +70,18 @@ Plain-English definitions, in roughly the order we met them. Updated each sessio
 
 ---
 
+## Session 4 — Deploy (GitHub Pages)
+
+**GitHub Pages** — GitHub's free web hosting for static sites (HTML/CSS/JS). Flip one setting and the repo's files are served at a public URL. For a repo named `username.github.io`, that URL is `https://username.github.io`. Ours went live at https://iamtimbrown.github.io with no code changes — the files were already pushed.
+
+**Going live / production URL** — Moving from `localhost` (reachable only on your machine, only while your local server runs) to a public address on an always-on machine anyone can reach. The code doesn't change — where it runs and who can reach it does. That's the essence of "deploy."
+
+**Environment** — A named place where a copy of the project runs. **Local / development** = your laptop, where you edit and break things safely. **Production ("prod")** = the real copy users hit. Many teams add **staging** in between: a production-like copy for final testing before customers see a change. Keeping them separate limits blast radius — make mistakes in dev, catch them in staging, never in prod. "Did this go to prod?" is asking which environment a change reached.
+
+**CI/CD (continuous integration / continuous deployment)** — An automated pipeline from "code merged" to "live in production." We used one without noticing: `git push` to `main` caused GitHub to automatically build and publish the site — no manual file uploads. Modern teams deploy this way constantly. Commercially, deployment frequency and pipeline safety are proxies for how fast a company can ship and respond.
+
+---
+
 ## Coming up — the AI layer
 
 **API** — A way for one program to use another program over the internet, machine-to-machine. AI products call a model provider's API. Commercially: API usage is metered, which drives AI cost structures.

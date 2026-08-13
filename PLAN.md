@@ -35,12 +35,15 @@ access token to authenticate. Repo now lives at
 github.com/iamtimbrown/iamtimbrown.github.io.
 Key concepts: remote, origin, push/pull, personal access token, source of truth.
 
-### ▶️ Session 4 — Deploy (GitHub Pages) (NEXT)
-Turn the repo into a live site at iamtimbrown.github.io. Real, shareable URL.
-The repo is already named correctly for this — should be one settings switch.
-Boardroom layer: what "going live" involves; environments.
+### ✅ Session 4 — Deploy (GitHub Pages) (DONE)
+Confirmed the site is live at https://iamtimbrown.github.io — a real, shareable
+URL serving the homepage (verified it loads; SMH link works). Pages was already
+enabled (source: main / root); the Save button was greyed out because nothing
+needed changing. Learned that the Session 3 `git push` auto-triggered the deploy.
+Key concepts: going live (localhost vs. public), environments (dev/staging/prod),
+CI/CD (a push to main auto-builds and publishes).
 
-### Session 5 — Call Claude from code ⭐ the AI layer begins
+### ▶️ Session 5 — Call Claude from code ⭐ the AI layer begins (NEXT)
 Small Python script that calls the Claude API. Needs an API key (small cost,
 pennies per call).
 Boardroom layer: tokens, context windows, why AI COGS scale with usage.
