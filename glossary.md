@@ -82,16 +82,29 @@ Plain-English definitions, in roughly the order we met them. Updated each sessio
 
 ---
 
-## Coming up — the AI layer
+## Session 5 — Call Claude from code (the AI layer begins)
 
-**API** — A way for one program to use another program over the internet, machine-to-machine. AI products call a model provider's API. Commercially: API usage is metered, which drives AI cost structures.
+**API key** — A scoped, expiring, revocable credential that authenticates your code to a provider's API. Same least-privilege idea as the GitHub PAT (Session 3). Cardinal rule: never put it in your code, or a `git push` would publish it. We kept ours in `key.txt`, listed in `.gitignore` so git ignores it — the standard "secrets live in a gitignored file" pattern.
 
-**Token** — The unit AI models read and write text in (~¾ of a word). API pricing is per token, so tokens are the unit of AI COGS.
+**SDK (software development kit)** — A ready-made library that hides the low-level plumbing of talking to an API. We installed the `anthropic` SDK with `pip3 install anthropic`; it turns "make an authenticated HTTPS request with the right headers and JSON" into one line: `client.messages.create(...)`.
 
-**Context window** — The maximum amount of text a model can consider at once. Limits how much background an AI can "hold in mind"; a key spec when comparing models.
+**API (met it)** — A way for one program to use another over the internet, machine-to-machine. Our Python script called Anthropic's API, a model generated a reply, and it came back. Every AI product is built on this exact mechanism. Commercially: API usage is metered, which drives AI cost structures.
+
+**Token** — The unit AI models read and write text in (~¾ of a word). Our first call used 25 input tokens + 78 output tokens. Providers charge a price *per input token* and a higher price *per output token*, so tokens are the atomic unit of AI COGS: tokens in + tokens out × a per-model price = the cost of a call.
+
+**AI COGS scale with usage** — Unlike traditional software (near-zero marginal cost per extra user), every AI call burns tokens that cost money. Cost scales roughly linearly with adoption, which is why AI businesses obsess over cost-per-query and why gross margin is a live question, not a given.
+
+**Model choice as a cost lever** — Cheaper/faster models (Haiku) vs. most-capable/pricier ones (Opus) can differ many-fold in per-token price. Routing easy tasks to cheap models and hard ones to expensive models is real engineering that maps straight to the P&L.
+
+**Context window** — The maximum number of tokens a model can consider at once. Caps how much background (documents, history, data) you can feed per call. "200K vs 1M context" comparisons are about this — bigger windows do more per call, but you pay for every token you put in.
+
+---
+
+## Coming up — agents
 
 **Agent** — An AI program that doesn't just answer, but takes actions: calling tools, checking results, looping until a task is done.
 
 **Tool use / function calling** — The mechanism that lets a model trigger real actions (search the web, send an email) via functions a developer wrote. The building block of agents.
 
 *(RAG, fine-tuning, evals, MCP — defined when we meet them.)*
+

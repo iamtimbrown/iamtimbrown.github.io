@@ -1,0 +1,8 @@
+# Secrets — never commit the API key
+key.txt
+*.rtf
+key*.txt
+
+# Python cache
+__pycache__/
+*.pyc

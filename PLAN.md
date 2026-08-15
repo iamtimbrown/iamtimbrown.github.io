@@ -43,12 +43,27 @@ needed changing. Learned that the Session 3 `git push` auto-triggered the deploy
 Key concepts: going live (localhost vs. public), environments (dev/staging/prod),
 CI/CD (a push to main auto-builds and publishes).
 
-### ▶️ Session 5 — Call Claude from code ⭐ the AI layer begins (NEXT)
-Small Python script that calls the Claude API. Needs an API key (small cost,
-pennies per call).
-Boardroom layer: tokens, context windows, why AI COGS scale with usage.
+### ✅ Session 5 — Call Claude from code ⭐ the AI layer begins (DONE)
+Wrote call_claude.py — a Python script that calls the Claude API and prints the
+reply plus token usage. Set up a Console account with $5 credit, generated an
+API key, installed the anthropic SDK (pip3). First call succeeded: sent a prompt
+about "what is an API," got a reply back, used 25 input + 78 output tokens.
+Key handling: key lives in key.txt, which is gitignored (secrets never in code).
+Learned the hard way that the clipboard is a single slot — copying commands and
+copying the key clobber each other; TextEdit (plain text) is the reliable way to
+get a key into a file.
+Boardroom layer: tokens are the billing unit (in + out × per-model price); AI
+COGS scale with usage (unlike normal software); model choice (Haiku vs Opus) is a
+cost lever; context window caps tokens-per-call.
 
-### Session 6–7 — Build an agent (tool use)
+To run again: cd ~/Documents/"Claude project" then python3 call_claude.py
+(the script reads the key from key.txt automatically — no read/export needed).
+
+TODO next session: delete the leftover "key . txt.rtf" file (it holds the key;
+gitignored so safe, but trash it for tidiness). Consider making the key a
+permanent env var later instead of a file.
+
+### ▶️ Session 6–7 — Build an agent (tool use) (NEXT)
 Give the model tools it can call (fetch a webpage, read a file) and watch it
 loop until a task is done.
 Boardroom layer: what "agentic" means mechanically; demo vs. product;
