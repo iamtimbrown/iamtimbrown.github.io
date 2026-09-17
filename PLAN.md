@@ -63,13 +63,54 @@ TODO next session: delete the leftover "key . txt.rtf" file (it holds the key;
 gitignored so safe, but trash it for tidiness). Consider making the key a
 permanent env var later instead of a file.
 
-### ▶️ Session 6–7 — Build an agent (tool use) (NEXT)
-Give the model tools it can call (fetch a webpage, read a file) and watch it
-loop until a task is done.
-Boardroom layer: what "agentic" means mechanically; demo vs. product;
-reliability as the hard part.
+### ✅ Session 6 — Build an agent (tool use) ⭐ agents begin (DONE)
+Wrote agent.py — our first agent. Gave the Haiku model two tools (read_file,
+fetch_url) and a goal: "compare my live homepage to my local index.html." The
+model decided on its own to fetch the live page, read the local file, then
+compare — we never scripted the order. Saw the loop print step by step:
+model → tool call → result → model, until stop_reason flipped from "tool_use"
+to "end_turn".
+Key mechanics: the agent LOOP (a messages list we call the model against
+repeatedly), tool definitions (name + description + input_schema — the
+description is how the model decides when to use a tool), and the
+tool_use / tool_result pair that carries each step (matched by id).
+Boardroom layer: "agentic" is just that loop, no magic. Demo vs. product —
+making it work ONCE is easy, making it reliable on messy inputs is the whole
+job (guardrails, step limits, permissions, evals). And agents multiply token
+cost: each loop step is a separate metered call, and tool outputs re-enter as
+input tokens — so step limits and cheap-model routing are cost levers.
 
-### Session 8 — Ship a useful agent
+To run: cd ~/Documents/"Claude project" then python3 agent.py
+
+### ✅ Session 7 — Make the agent reliable (guardrails + evals) (DONE)
+Hardened agent.py into agent2.py — same loop, made trustworthy. Added: a STEP
+LIMIT (while step < MAX_STEPS = 8) so it can never loop forever; DEFENSIVE tools
+that catch errors and return an "ERROR:" string fed back to the model, so a
+broken source doesn't crash the run; and output TRIMMING (4000 chars) to keep
+token cost bounded. Gave it a real task — summarise 3 web sources where one URL
+is deliberately broken — and it degraded gracefully (summarised the 2 that
+worked, flagged the 1 that failed). Then wrote a first EVAL: 3 automatic PASS/
+FAIL checks on the run (finished within limit? produced an answer? flagged the
+dead source?). Verified the guardrails with mocks before running.
+Boardroom layer: demo→product = reliability engineering; guardrails contain a
+model you don't fully trust; evals let you say "reliable" with a number, and
+they gate shipping. LLM-as-judge = the scalable eval grader (noted for later).
+
+To run: cd ~/Documents/"Claude project" then python3 agent2.py
+(agent.py, the Session 6 demo, is kept alongside for comparison — git diff them.)
+
+### 📚 Side thread (during Session 6) — AI infrastructure economics
+Sparked by a role description phrase: "GPU capacity, inferencing costs, model
+deployment architectures." Worked it all the way down the stack. Everything is
+written up in glossary.md (sections: infra economics; RAG vs. fine-tuning;
+self-hosting & open vs. closed; the infrastructure stack). Visual companion:
+ai-infrastructure-stack.html (also published as a Claude artifact). Covers:
+inference vs. training, GPU capacity, deployment architectures, build-vs-buy =
+cloud-vs-on-prem, sovereign cloud spectrum, open-weight vs. closed + weights,
+neoclouds (own GPUs, colo not concrete, debt/circular financing), colocation
+operators + PE ownership, and power as the binding constraint.
+
+### ▶️ Session 8 — Ship a useful agent (NEXT)
 Something real, e.g. a morning digest agent that checks sources and emails a
 summary. Deploy so it runs without the laptop.
 Boardroom layer: full picture of what an AI build takes; RAG, evals,

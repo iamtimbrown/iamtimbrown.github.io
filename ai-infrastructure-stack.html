@@ -1,0 +1,416 @@
+<title>The AI Infrastructure Stack</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Public+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+  :root{
+    --paper:#e9ebef;
+    --surface:#f6f7f9;
+    --surface-2:#fdfdfe;
+    --ink:#171b22;
+    --muted:#586173;
+    --line:#c4cbd6;
+    --line-soft:#d6dbe3;
+    --accent:#b46a24;      /* copper — current / heat / the money flows */
+    --accent-soft:#e7d3bd;
+    --accent-ink:#8a4f16;
+    --shadow:0 1px 2px rgba(20,25,35,.05),0 8px 24px rgba(20,25,35,.06);
+  }
+  :root:not([data-theme="light"]){}
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#0e1218;
+      --surface:#161b23;
+      --surface-2:#1c222b;
+      --ink:#e7ebf1;
+      --muted:#98a3b4;
+      --line:#2a323d;
+      --line-soft:#232a34;
+      --accent:#d8933f;
+      --accent-soft:#3a2e1d;
+      --accent-ink:#e9a64a;
+      --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#0e1218;
+    --surface:#161b23;
+    --surface-2:#1c222b;
+    --ink:#e7ebf1;
+    --muted:#98a3b4;
+    --line:#2a323d;
+    --line-soft:#232a34;
+    --accent:#d8933f;
+    --accent-soft:#3a2e1d;
+    --accent-ink:#e9a64a;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35);
+  }
+
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"Public Sans",system-ui,-apple-system,sans-serif;
+    line-height:1.6;
+    font-size:16px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1000px;margin:0 auto;padding:clamp(28px,5vw,72px) clamp(18px,4vw,44px) 80px}
+
+  .eyebrow{
+    font-family:"IBM Plex Mono",ui-monospace,monospace;
+    font-size:12px;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--accent-ink);font-weight:600;margin:0 0 14px;
+  }
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .eyebrow{color:var(--accent)}}
+  :root[data-theme="dark"] .eyebrow{color:var(--accent)}
+
+  h1{
+    font-family:"Archivo",sans-serif;font-weight:800;
+    font-size:clamp(32px,6vw,58px);line-height:1.02;letter-spacing:-.02em;
+    margin:0 0 18px;text-wrap:balance;
+  }
+  .dek{font-size:clamp(16px,2.2vw,19px);color:var(--muted);max-width:60ch;margin:0}
+  .dek b{color:var(--ink);font-weight:600}
+
+  h2{
+    font-family:"Archivo",sans-serif;font-weight:700;
+    font-size:clamp(20px,3vw,27px);letter-spacing:-.01em;margin:0 0 6px;
+  }
+  .sec{margin-top:clamp(46px,7vw,76px)}
+  .sec-head{margin-bottom:26px}
+  .sec-head p{margin:0;color:var(--muted);max-width:66ch}
+
+  /* ---- STACK ---- */
+  .stack{display:flex;flex-direction:column;gap:8px}
+  .layer{
+    display:grid;grid-template-columns:78px 1fr;gap:0;
+    background:var(--surface);border:1px solid var(--line-soft);
+    border-radius:9px;overflow:hidden;box-shadow:var(--shadow);
+  }
+  .layer .idx{
+    background:var(--surface-2);border-right:1px solid var(--line-soft);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:14px 6px;gap:4px;
+  }
+  .layer .idx .n{font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:18px;color:var(--ink)}
+  .layer .idx .t{font-family:"IBM Plex Mono",monospace;font-size:9.5px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase}
+  .layer .body{padding:15px 20px;display:grid;grid-template-columns:1fr;gap:5px}
+  .layer .role{font-family:"Archivo",sans-serif;font-weight:700;font-size:17px;letter-spacing:-.01em}
+  .layer .who{font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--accent-ink)}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .layer .who{color:var(--accent)}}
+  :root[data-theme="dark"] .layer .who{color:var(--accent)}
+  .layer .note{font-size:14px;color:var(--muted)}
+  .layer.foundation{border-color:var(--accent);background:linear-gradient(0deg,var(--accent-soft),var(--surface))}
+  .layer.foundation .idx{background:transparent;border-right-color:var(--accent)}
+  .layer.foundation .idx .n,.layer.foundation .role{color:var(--accent-ink)}
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]) .layer.foundation .idx .n,
+    :root:not([data-theme="light"]) .layer.foundation .role{color:var(--accent)}
+  }
+  :root[data-theme="dark"] .layer.foundation .idx .n,
+  :root[data-theme="dark"] .layer.foundation .role{color:var(--accent)}
+  .arrow-down{text-align:center;color:var(--line);font-size:15px;line-height:1;margin:-2px 0}
+
+  @media (max-width:560px){
+    .layer{grid-template-columns:56px 1fr}
+    .layer .idx .t{display:none}
+  }
+
+  /* ---- FIGURE ---- */
+  figure{margin:0}
+  .figframe{
+    background:var(--surface);border:1px solid var(--line-soft);border-radius:12px;
+    padding:clamp(12px,3vw,26px);box-shadow:var(--shadow);overflow-x:auto;
+  }
+  svg.flow{display:block;width:100%;height:auto;color:var(--ink);min-width:620px}
+  .flow .box{fill:var(--surface-2);stroke:var(--line);stroke-width:1.4}
+  .flow .box.you{stroke:var(--ink)}
+  .flow .nm{font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:13px;fill:var(--ink)}
+  .flow .sub{font-family:"IBM Plex Mono",monospace;font-size:10px;fill:var(--muted)}
+  .flow .lbl{font-family:"IBM Plex Mono",monospace;font-size:10.5px;fill:var(--muted)}
+  .flow .edge{stroke:var(--line);stroke-width:1.5;fill:none}
+  .flow .ah{fill:var(--line)}
+  .flow .edgeA{stroke:var(--accent);stroke-width:1.8;fill:none}
+  .flow .edgeA.dash{stroke-dasharray:5 4}
+  .flow .ahA{fill:var(--accent)}
+  .flow .lblA{font-family:"IBM Plex Mono",monospace;font-size:10.5px;font-weight:600;fill:var(--accent-ink)}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .flow .lblA{fill:var(--accent)}}
+  :root[data-theme="dark"] .flow .lblA{fill:var(--accent)}
+  .flow .pwr{fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.4}
+  .flow .pwrtxt{font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:12px;fill:var(--accent-ink)}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .flow .pwrtxt{fill:var(--accent)}}
+  :root[data-theme="dark"] .flow .pwrtxt{fill:var(--accent)}
+
+  figcaption{margin-top:14px;font-size:13.5px;color:var(--muted);max-width:70ch}
+  .legend{display:flex;flex-wrap:wrap;gap:16px 22px;margin-top:16px;font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:var(--muted)}
+  .legend span{display:inline-flex;align-items:center;gap:8px}
+  .swatch{width:22px;height:0;border-top:2px solid var(--line)}
+  .swatch.a{border-top-color:var(--accent)}
+  .swatch.d{border-top:2px dashed var(--accent)}
+
+  /* ---- TWO PANELS ---- */
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media (max-width:680px){.grid2{grid-template-columns:1fr}}
+  .card{background:var(--surface);border:1px solid var(--line-soft);border-radius:11px;padding:20px 22px;box-shadow:var(--shadow)}
+  .card h3{font-family:"Archivo",sans-serif;font-weight:700;font-size:17px;margin:0 0 12px}
+  .spectrum{display:flex;flex-direction:column;gap:0;border-radius:8px;overflow:hidden;border:1px solid var(--line-soft)}
+  .stop{padding:11px 14px;display:grid;gap:2px;border-left:3px solid var(--accent)}
+  .stop:not(:last-child){border-bottom:1px solid var(--line-soft)}
+  .stop .s-t{font-family:"IBM Plex Mono",monospace;font-size:12px;font-weight:600;color:var(--ink)}
+  .stop .s-d{font-size:13px;color:var(--muted)}
+  .stop.s1{border-left-color:var(--line)}
+  .stop.s2{border-left-color:var(--accent-soft)}
+  .stop.s3{border-left-color:var(--accent)}
+
+  .vs{display:grid;grid-template-columns:1fr auto 1fr;align-items:stretch;gap:0}
+  .vs .col{padding:4px 0}
+  .vs .h{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent-ink);margin-bottom:6px}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .vs .h{color:var(--accent)}}
+  :root[data-theme="dark"] .vs .h{color:var(--accent)}
+  .vs .mid{width:1px;background:var(--line-soft);margin:0 16px}
+  .vs p{margin:0 0 8px;font-size:13.5px;color:var(--muted)}
+  .vs b{color:var(--ink);font-weight:600}
+
+  footer{margin-top:60px;padding-top:22px;border-top:1px solid var(--line-soft);color:var(--muted);font-size:13px;display:flex;flex-wrap:wrap;gap:6px 18px;justify-content:space-between}
+  footer .mono{font-family:"IBM Plex Mono",monospace}
+  a{color:var(--accent-ink);text-decoration:underline;text-underline-offset:2px}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) a{color:var(--accent)}}
+  :root[data-theme="dark"] a{color:var(--accent)}
+</style>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">AI Commercial Leader · Field Note</p>
+    <h1>The AI Infrastructure Stack</h1>
+    <p class="dek">From your prompt down to the electrical grid: <b>who owns each layer, and how the money actually flows</b>. The two things worth remembering — everyone rents from someone, and <b>power is the constraint that gates the whole thing</b>.</p>
+  </header>
+
+  <section class="sec">
+    <div class="sec-head">
+      <h2>Seven layers, top to bottom</h2>
+      <p>Read it like a section drawing. You sit at the top with a prompt; each layer below is provided by someone else, until you reach the physical foundation.</p>
+    </div>
+
+    <div class="stack">
+      <div class="layer">
+        <div class="idx"><span class="n">07</span><span class="t">You</span></div>
+        <div class="body">
+          <div class="role">Your app / agent</div>
+          <div class="who">prompt in → tokens out · the agent loop (Sessions 5–6)</div>
+          <div class="note">Where you build. Cost = tokens in + tokens out × price; agents multiply the call count.</div>
+        </div>
+      </div>
+      <div class="arrow-down">↓</div>
+
+      <div class="layer">
+        <div class="idx"><span class="n">06</span><span class="t">Access</span></div>
+        <div class="body">
+          <div class="role">Model access &amp; deployment</div>
+          <div class="who">BUY — hosted API &nbsp;↔&nbsp; BUILD — self-host on rented GPUs</div>
+          <div class="note">The build-vs-buy decision, plus the sovereignty spectrum. Metered usage is your COGS.</div>
+        </div>
+      </div>
+      <div class="arrow-down">↓</div>
+
+      <div class="layer">
+        <div class="idx"><span class="n">05</span><span class="t">Model</span></div>
+        <div class="body">
+          <div class="role">The model (the weights)</div>
+          <div class="who">OPEN-WEIGHT: Llama · Mistral · Qwen &nbsp;↔&nbsp; CLOSED: GPT · Claude · Gemini</div>
+          <div class="note">Self-host is only possible with open weights. Frontier-closed models are API-only — the “capability ceiling.”</div>
+        </div>
+      </div>
+      <div class="arrow-down">↓</div>
+
+      <div class="layer">
+        <div class="idx"><span class="n">04</span><span class="t">Compute</span></div>
+        <div class="body">
+          <div class="role">Compute provider</div>
+          <div class="who">HYPERSCALERS: AWS · Azure · GCP &nbsp;+&nbsp; NEOCLOUDS: CoreWeave · Lambda · Nebius · Crusoe</div>
+          <div class="note">They own the GPUs and are tenants of the data-center operators. Neoclouds are debt-financed on the chips.</div>
+        </div>
+      </div>
+      <div class="arrow-down">↓</div>
+
+      <div class="layer">
+        <div class="idx"><span class="n">03</span><span class="t">Chips</span></div>
+        <div class="body">
+          <div class="role">GPUs / chips</div>
+          <div class="who">NVIDIA (H100/B200) · also AMD · Google TPUs · AWS Trainium</div>
+          <div class="note">The expensive, fast-depreciating asset — and the collateral behind neocloud loans.</div>
+        </div>
+      </div>
+      <div class="arrow-down">↓</div>
+
+      <div class="layer">
+        <div class="idx"><span class="n">02</span><span class="t">Building</span></div>
+        <div class="body">
+          <div class="role">Data-center building (colocation)</div>
+          <div class="who">Equinix · Digital Realty · QTS · Vantage — owned by PE/infra (e.g. Blackstone)</div>
+          <div class="note">The “landlords.” They lease space + power. At bottom, this layer is a real-estate play.</div>
+        </div>
+      </div>
+      <div class="arrow-down">↓</div>
+
+      <div class="layer foundation">
+        <div class="idx"><span class="n">01</span><span class="t">Power</span></div>
+        <div class="body">
+          <div class="role">Power &amp; grid — the binding constraint</div>
+          <div class="who">utilities · power-ready land · grid connections · cooling</div>
+          <div class="note">Scarce power, not concrete, is what gates the whole stack. Whoever controls secured power holds the leverage.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head">
+      <h2>How the money &amp; iron actually flow</h2>
+      <p>The surprising part isn’t the value chain — it’s the loops. The copper arrows are the non-obvious flows: NVIDIA funds the buyers of its own chips, and the hyperscalers rent GPUs <em>from</em> the neoclouds.</p>
+    </div>
+
+    <figure>
+      <div class="figframe">
+        <svg class="flow" viewBox="0 0 940 548" role="img" aria-label="Flow diagram: NVIDIA sells GPUs to neoclouds and hyperscalers and also invests in neoclouds (circular financing); hyperscalers additionally rent GPU capacity from neoclouds; both lease buildings and power from colocation operators, which are owned by private-equity investors and rest on the power grid; the compute providers serve inference to you.">
+          <defs>
+            <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" class="ah"/>
+            </marker>
+            <marker id="arA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7.5" markerHeight="7.5" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" class="ahA"/>
+            </marker>
+          </defs>
+
+          <!-- edges: value chain -->
+          <line class="edge" x1="192" y1="171" x2="298" y2="150" marker-end="url(#ar)"/>
+          <text class="lbl" x="205" y="150">sells GPUs</text>
+          <path class="edge" d="M192,188 Q360,252 538,168" marker-end="url(#ar)"/>
+
+          <!-- circular financing (amber dashed, over the top) -->
+          <path class="edgeA dash" d="M150,150 Q262,52 372,106" marker-end="url(#arA)"/>
+          <text class="lblA" x="196" y="66">circular financing:  $ ⟳ GPUs</text>
+
+          <!-- hyperscaler rents GPUs from neocloud (amber) -->
+          <line class="edgeA" x1="500" y1="137" x2="452" y2="137" marker-end="url(#arA)"/>
+          <text class="lblA" x="476" y="99" text-anchor="middle">rents GPU</text>
+          <text class="lblA" x="476" y="112" text-anchor="middle">capacity</text>
+
+          <!-- providers -> colo -->
+          <line class="edge" x1="386" y1="166" x2="440" y2="324" marker-end="url(#ar)"/>
+          <text class="lbl" x="360" y="250" text-anchor="end">leases</text>
+          <text class="lbl" x="360" y="263" text-anchor="end">space+power</text>
+          <line class="edge" x1="566" y1="166" x2="512" y2="324" marker-end="url(#ar)"/>
+          <text class="lbl" x="590" y="250">leases</text>
+          <text class="lbl" x="590" y="263">wholesale</text>
+
+          <!-- PE owns colo -->
+          <line class="edge" x1="268" y1="355" x2="370" y2="355" marker-end="url(#ar)"/>
+          <text class="lbl" x="319" y="346" text-anchor="middle">owns</text>
+
+          <!-- colo needs power -->
+          <line class="edgeA" x1="475" y1="384" x2="475" y2="450" marker-end="url(#arA)"/>
+          <text class="lblA" x="486" y="420">needs power</text>
+
+          <!-- providers serve you -->
+          <path class="edge" d="M652,146 Q724,150 770,172" marker-end="url(#ar)"/>
+          <text class="lbl" x="662" y="138">serve inference → tokens</text>
+
+          <!-- boxes -->
+          <g>
+            <rect class="box" x="40" y="150" width="152" height="58" rx="6"/>
+            <text class="nm" x="116" y="176" text-anchor="middle">NVIDIA</text>
+            <text class="sub" x="116" y="193" text-anchor="middle">makes the chips</text>
+          </g>
+          <g>
+            <rect class="box" x="300" y="108" width="152" height="58" rx="6"/>
+            <text class="nm" x="376" y="134" text-anchor="middle">Neocloud</text>
+            <text class="sub" x="376" y="151" text-anchor="middle">CoreWeave · Lambda</text>
+          </g>
+          <g>
+            <rect class="box" x="500" y="108" width="152" height="58" rx="6"/>
+            <text class="nm" x="576" y="134" text-anchor="middle">Hyperscaler</text>
+            <text class="sub" x="576" y="151" text-anchor="middle">AWS · Azure · GCP</text>
+          </g>
+          <g>
+            <rect class="box you" x="770" y="150" width="130" height="58" rx="6"/>
+            <text class="nm" x="835" y="176" text-anchor="middle">You</text>
+            <text class="sub" x="835" y="193" text-anchor="middle">app / agent</text>
+          </g>
+          <g>
+            <rect class="box" x="372" y="326" width="208" height="58" rx="6"/>
+            <text class="nm" x="476" y="352" text-anchor="middle">Colo operator</text>
+            <text class="sub" x="476" y="369" text-anchor="middle">Equinix · Digital Realty · QTS</text>
+          </g>
+          <g>
+            <rect class="box" x="96" y="326" width="172" height="58" rx="6"/>
+            <text class="nm" x="182" y="352" text-anchor="middle">PE / infra investor</text>
+            <text class="sub" x="182" y="369" text-anchor="middle">e.g. Blackstone</text>
+          </g>
+
+          <!-- power foundation -->
+          <rect class="pwr" x="40" y="470" width="860" height="46" rx="7"/>
+          <text class="pwrtxt" x="470" y="498" text-anchor="middle">POWER &amp; GRID — the binding constraint on the whole stack</text>
+        </svg>
+      </div>
+      <div class="legend">
+        <span><i class="swatch"></i> sells / serves</span>
+        <span><i class="swatch a"></i> non-obvious money flow</span>
+        <span><i class="swatch d"></i> investment (circular)</span>
+      </div>
+      <figcaption>The value chain runs NVIDIA → compute providers → you. The copper edges are what catches people out: NVIDIA <em>invests in</em> the neoclouds that then buy its GPUs, and the hyperscalers rent GPU capacity <em>from</em> the neoclouds when their own build can’t keep up. Beneath it all, the compute providers are only <em>tenants</em> — the buildings belong to colocation operators, owned in turn by infrastructure capital and resting on scarce power.</figcaption>
+    </figure>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head">
+      <h2>Two dials underneath the stack</h2>
+      <p>The same infrastructure gets packaged along two axes that decide most enterprise AI deals.</p>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <h3>Sovereignty is a spectrum</h3>
+        <div class="spectrum">
+          <div class="stop s1">
+            <span class="s-t">1 · In-region public cloud</span>
+            <span class="s-d">Normal cloud kept in-territory with contractual/technical controls (Microsoft Cloud for Sovereignty).</span>
+          </div>
+          <div class="stop s2">
+            <span class="s-t">2 · Partner-operated “trusted” cloud</span>
+            <span class="s-d">A local company runs it: Bleu (FR, Capgemini+Orange), Delos (DE, SAP), S3NS (FR, Thales).</span>
+          </div>
+          <div class="stop s3">
+            <span class="s-t">3 · Separate / air-gapped cloud</span>
+            <span class="s-d">AWS European Sovereign Cloud (EU-only staff, runs cut off); Google Distributed Cloud (air-gapped).</span>
+          </div>
+        </div>
+        <p style="margin:12px 0 0;font-size:13px;color:var(--muted)">Ask: who operates it? where do data + keys live? can it run cut off? More sovereign = fewer latest features + higher cost.</p>
+      </div>
+
+      <div class="card">
+        <h3>Buy vs. build (= cloud vs. on-prem)</h3>
+        <div class="vs">
+          <div class="col">
+            <div class="h">Buy</div>
+            <p><b>Hosted API.</b> Fast, lean, no infra. Access to frontier closed models you couldn’t build.</p>
+            <p>Pay per token; costs scale with usage.</p>
+          </div>
+          <div class="mid"></div>
+          <div class="col">
+            <div class="h">Build</div>
+            <p><b>Self-host</b> open weights on rented GPUs. Control, privacy, edge, cost-at-scale.</p>
+            <p>You own the serving stack, ops &amp; uptime.</p>
+          </div>
+        </div>
+        <p style="margin:12px 0 0;font-size:13px;color:var(--muted)">Realistically “build” = rented dedicated GPUs in someone else’s building — not your own data center.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>Companion to <span class="mono">glossary.md</span> · “AI Commercial Leader” learning track</span>
+    <span class="mono">Session 6 · side thread</span>
+  </footer>
+</div>

@@ -6,3 +6,10 @@ key*.txt
 # Python cache
 __pycache__/
 *.pyc
+
+# Email + other local secrets (never commit)
+secrets.env
+*.env
+
+# macOS junk
+.DS_Store

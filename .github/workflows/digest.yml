@@ -1,0 +1,53 @@
+# .github/workflows/digest.yml
+# This is a GitHub Actions WORKFLOW: a recipe GitHub runs for you, on GitHub's
+# own computers, on a schedule — no laptop required. It's the same CI/CD idea
+# from Session 4 (a push auto-deploys), but now WE decide when it runs.
+
+name: Morning Brief
+
+on:
+  schedule:
+    # Cron = a scheduler. Five fields: minute hour day month weekday.
+    # GitHub runs cron in UTC. 23:00 UTC = 07:00 in Singapore (UTC+8).
+    - cron: "0 23 * * *"        # every day at 7am your time
+  workflow_dispatch:            # ALSO lets you run it by hand from the Actions tab
+
+permissions:
+  contents: write               # allow the job to commit digest.html back to the repo
+
+jobs:
+  build-and-send:
+    runs-on: ubuntu-latest      # GitHub spins up a fresh Linux machine each run
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install anthropic
+
+      - name: Build the brief and email it
+        # Secrets come from GitHub's encrypted store — never from a file. This is
+        # exactly what get_secret() reads via the environment. No key.txt here.
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GMAIL_ADDRESS: ${{ secrets.GMAIL_ADDRESS }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          DIGEST_TO: ${{ secrets.DIGEST_TO }}
+        run: python3 digest.py
+
+      - name: Publish digest.html to your website
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add digest.html
+          if git diff --staged --quiet; then
+            echo "No change in digest.html — nothing to publish."
+          else
+            git commit -m "Update morning brief ($(date -u +%Y-%m-%d))"
+            git push
+          fi
