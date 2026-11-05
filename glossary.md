@@ -219,5 +219,94 @@ Took `agent.py` (the Session 6 demo) and hardened it into `agent2.py` — same l
 
 **LLM-as-judge** — The scalable version of an eval check. Simple checks use keyword/rule matching (crude, brittle); LLM-as-judge instead asks a *model* to grade the output against a written rubric. More flexible for judging things like "is this summary accurate and well-written," which keywords can't capture. Same idea as our eval, just a smarter grader.
 
-*(MCP, RAG-in-practice, deployment/hosting an agent — for Session 8 and beyond.)*
+## Session 8 — Ship a useful agent (deploy on a schedule)
 
+Turned the agent into a real product: `digest.py`, a morning brief that fetches AI + markets news, has Sonnet write it up, and delivers it two ways — a published web page and an email — then runs itself every morning on GitHub's servers with the laptop closed. Built as `digest.py` + `.github/workflows/digest.yml`.
+
+**Shipping (the last mile)** — Making something *work* and making it *run itself, reliably, without you* are two different jobs. Session 8 is the second: delivery, secrets, and scheduling. The code was the easy part; getting it to run somewhere else, on its own, safely, is the deploy.
+
+**Deployment** — Getting your code to run somewhere other than your own machine. "Works on my Mac" isn't shipped; "runs in the cloud when my laptop's asleep" is. The whole session is about crossing that gap.
+
+**Environment variables** — Values the operating system hands a program when it starts, instead of the program reading them from a file. The move that lets *one* file run in two places: on your Mac `get_secret()` falls back to `key.txt`; in the cloud there is no `key.txt`, so the same code reads the value from the environment. `secrets.env` is the local convenience version (a gitignored `.env` file); GitHub Secrets is the cloud version.
+
+**Secrets management** — Keeping credentials out of your code and out of git. What we did: real secrets live in gitignored files (`key.txt`, `secrets.env`) or an encrypted store (GitHub Secrets), never in the repo — and you give a program a *narrow, revocable* credential, never your master password.
+
+**App password (Gmail)** — A single-purpose, revocable 16-character password you generate for one program, so your real Google password never touches the code. Requires 2-Step Verification. If it leaks you revoke just that one; your account is untouched. The principle is **least privilege**: hand out the smallest, most disposable credential that does the job.
+
+**Token scopes (least privilege, cont'd)** — The same idea for GitHub tokens. Your Session-3 token could push code but *not* create workflow files, by design — GitHub guards workflow files specially because they run code — so we added the `workflow` scope. A scoped credential limits the blast radius of a leak: a feature, not a hassle.
+
+**SMTP** — The internet's standard protocol for *sending* email. `digest.py` connects to Gmail's SMTP server over SSL, logs in with the app password, and sends the brief. Python's built-in `smtplib` does it in a few lines.
+
+**Cron** — A scheduler that runs a job on a repeating time pattern. Five fields: `minute hour day month weekday`. GitHub runs cron in **UTC**, so our `0 23 * * *` (23:00 UTC) fires at 07:00 Singapore. Cron is how "do this every morning" becomes a concrete instruction.
+
+**GitHub Actions (CI/CD, cont'd)** — GitHub's automation service: it runs jobs on its own machines, triggered by events. Session 4's Pages was CI/CD you *inherited* (a push auto-deploys); here you *authored* it. The pieces: a **workflow** (the `.yml` recipe of steps), a **runner** (the fresh Linux machine GitHub spins up per run — `runs-on: ubuntu-latest`), **triggers** (`schedule:` for the daily cron, `workflow_dispatch:` for the manual "Run workflow" button), and **permissions** (`contents: write`, so the job can commit the new `digest.html` back to the repo).
+
+**YAML** — The indentation-based config format workflow files are written in (`key: value`, lists with `-`). Not code you run — a structured description the tool reads. Whitespace matters.
+
+**"Works on my machine" (environment parity)** — The classic deploy bug, hit live: the code ran perfectly on your Mac but failed in the cloud with a 401, because the API-key *secret* in GitHub had a stray character. When something works locally but breaks when deployed, suspect the environment first — secrets, versions, network — not the code. Nine times out of ten it's a secret or config mismatch.
+
+**Model choice as a cost/quality lever (cont'd)** — We write with **Sonnet** (sharper synthesis) rather than Haiku, accepting a few cents per run for a brief you'll actually read — a deliberate cost-vs-quality trade, ~$1/month once a day. Plus a **model fallback**: if Sonnet is unavailable the code drops to Haiku and keeps going, so a model outage never means no brief — the "degrade gracefully" instinct from Session 7, applied to the model itself.
+
+**RSS feed** — A structured (XML) list of a site's latest items: title, link, short description. Cleaner and cheaper for a model to read than scraping a cluttered homepage. We read seven feeds across four providers (Google News, The Verge, Hacker News, CNBC) so **no single source is load-bearing** — if one fails some morning, the others still carry the brief (source diversity as a guardrail; on the first run one feed came back empty and the agent just flagged it and moved on).
+
+## Session 9 — Build a discovery agent (the Scout)
+
+Built scout.py — an AI-ecosystem SCOUT. Where the digest *summarised* what you pointed it at, the Scout *discovers*: given a thesis and the companies you already track (watchlist.json), it searches the live web, judges what fits, proposes new companies for your approval, and writes the ones you accept back into its own watchlist. First run found 10 real candidates (you kept 9), heavily Australian — Heidi Health, Lyrebird, Lorikeet, Neara, BrainChip, Q-CTRL, Appen, Andromeda Robotics, Groq.
+
+**Monitor vs. Scout** — Two modes an agent can run in. A *monitor* watches a fixed list and reports what changed (the digest, essentially). A *scout* goes looking — it finds new things to add. Scout is the jump from "watch what I named" to "find what I'm missing," which for a BD/partnerships person is the more valuable half.
+
+**Web search as a tool** — Until now the model only saw a URL you handed it (`fetch_url`). Here we switched on Anthropic's built-in `web_search` tool: inside a single API call, the model decides what to search, runs the searches itself, reads the results, and reasons over them. That's the leap from "read this page" to "go find out." It's a *server-side* tool — Anthropic runs the searches — unlike the client-side `fetch_url` you wrote by hand in Session 6. We biased results toward Australia with `user_location`.
+
+**LLM-as-filter** — Using the model not to generate but to JUDGE: does this fit my thesis? is it already on my list? Pointing a model at messy results and asking it to sift is most of what real AI products actually do.
+
+**Persistent state (read and write)** — The Scout reads watchlist.json to know what it already tracks, and writes your approved additions back into it. Your first agent that *changes its own data* and remembers across runs — the foundation under every assistant that seems to "learn" what you've told it.
+
+**Human-in-the-loop** — The agent never adds anything itself; it proposes, you approve (a/s/q per candidate). That approval gate is the single most important safety pattern in agentic products: the model suggests, the human decides. It's also what keeps a discovery agent from quietly filling your list with noise.
+
+**Config vs. engine** — The watchlist (*what* to track) is a data file; the Scout (*how* to track) is code. Keeping them separate means re-aiming the agent — new thesis, new names — never touches the engine. Good practice you'll see everywhere.
+
+*(Next up — Monitor mode: watch the now-33-company list for real day-to-day changes, then deploy the whole tracker. Or RAG, MCP, a custom domain. See PLAN.md.)*
+
+## Session 10 — Make the tracker self-running (scheduled Monitor + Scout)
+
+Built ai-tracker/ — the Scout plus a new Monitor, run weekly by GitHub Actions in a PRIVATE repo, delivering one email: "What moved" (real news on tracked companies) + "New candidates" (awaiting your approval). tracker.py is the robot; approve.py is your half.
+
+**Public vs. private repo** — Your website repo is public: anyone can read every file in it, not just the pages. The tracker's watchlist holds personal notes, so it got its own private repo. Rule of thumb: *where code runs* and *who can read it* are separate decisions — decide visibility on purpose, per repo.
+
+**Batching** — Checking 33 companies in one giant call gives the model too much to juggle and makes one failure fatal. We check ~6 at a time. Smaller jobs = sharper focus, bounded cost per call, and a failed batch is just flagged ("Health check") while the rest still deliver.
+
+**Delta / change detection** — A monitor's job is to report what *changed*, not everything it saw. Two layers: the prompt asks only for material news inside a 7-day window, and code then drops anything off-list, undated, out-of-window or without a source.
+
+**De-duplication with memory (state)** — monitor_state.json remembers every story already sent you (keyed by its URL), so last week's news never reappears. Old entries expire after 90 days so the file doesn't grow forever.
+
+**Asynchronous human-in-the-loop** — A scheduled job can't stop and ask "a/s/q?". So we SPLIT the steps: the robot *proposes* weekly (parks names in pending.json); you *approve* whenever you like (approve.py). Skips are remembered as "rejected" so they're never re-proposed. This propose/approve split is how most real agentic products handle human sign-off.
+
+**State in two places (sync)** — The cloud run writes pending.json; your laptop writes watchlist.json. Same files, two copies — so approve.py PULLS from GitHub first and PUSHES after. Forgetting to sync = the two copies drift apart (a "merge conflict" when git can't reconcile them).
+
+**pause_turn** — When the model does a lot of server-side searching, the API can return `stop_reason="pause_turn"` = "not finished, call me again". We pass its partial work back and let it continue — with a cap, as always.
+
+**Wrapper (metering)** — We wrapped the API call once so *every* call — monitor and scout — adds its tokens and searches to a running cost meter. Each email ends with "Run cost ≈ $X". First real run: **$1.69** (~$7/month weekly) = 42 searches (~$0.42) + 389k input tokens (~$1.17) + 7k output (~$0.11). The searches are cheap; the *search results re-entering as input tokens* are 70% of the bill. Search-heavy agents are input-token-heavy — the levers are fewer searches per batch, or a cheaper model for the monitor.
+
+**Loud failure (exit codes)** — A program ends with an exit code: 0 = success, anything else = failure. If the email doesn't send or most batches fail, tracker.py exits 1, so GitHub marks the run red *and emails you*. The direct lesson of the digest silently failing for weeks in October: a scheduled job must fail noisily. A "quiet week" email is also sent on purpose — silence should never be ambiguous.
+
+**Dry run** — `python3 tracker.py --dry-run` does the whole job but sends nothing and saves nothing. Standard practice before letting automation act for real.
+
+**Mocks (testing without spending)** — Before any real run we swapped in a fake Anthropic client that returned deliberately awkward answers — a "pause", old news, an off-list company, unparseable output, a crashed call — and checked each guardrail caught it. Free, fast, and repeatable; real runs then only test what mocks can't (the quality of the model's judgement).
+
+**Source quality / grounding** — The first real run's weakest items all had one thing in common: the "source" was a homepage, blog index or listing page, not an article — and one of them (Kimi K3 "by Google" on *Amazon* Bedrock) was simply misattributed. A model citing a vague page is a classic sign it's stretching. Fix = two layers: the prompt demands the specific article with the company as the actor, and a cheap code check (`looks_like_article`: the URL must end in a long slug or an ID number) drops anything that doesn't. On that run it removed exactly the 6 weak items and kept the 11 solid ones. Lesson: *prompt for quality, then verify in code* — never rely on the prompt alone.
+
+**Padding** — Models like to sound relevant: every "why it matters" ended "…across APAC markets". Told it explicitly to mention APAC only when the story genuinely involves it, and capped the line at 25 words.
+
+**Second look (verify-then-keep)** — Dropping weak-sourced items lost real stories along with wrong ones. So instead of binning them, a "sub-editor" step runs ONE focused search per weak item: find the specific article, confirm it happened, confirm the right company did it. Confirmed → kept with the proper link; unconfirmed → dropped, and listed at the bottom of the email with the reason, so you can see what was filtered. Capped at 15 checks × 2 searches per run (raised from 8 after the real run used all 8 in half the batches; worst case ~+$0.75). This is a lightweight form of a well-known pattern: one model call *generates*, a second call *checks* (generator/verifier).
+
+**Trust, but verify the verifier** — The checker's answer goes through the *same* code checks as the original. In testing, it "verified" a story but handed back a homepage — the code rejected it anyway. A model checking a model is better than nothing; a model checked by deterministic code is better still.
+
+**Open web vs. curated sources** — The digest reads 7 fixed RSS feeds (curated: predictable, narrow). The tracker searches the whole web — the model writes its own queries every run (open: wider net, more junk). Open search is why the source checks matter. If junk sites keep recurring, the web_search tool also accepts `blocked_domains` (never use these sites) or `allowed_domains` (only these) — a dial between the two approaches.
+
+**One rule, defined once** — The second dry run showed the sub-editor rejecting stories dated 1–2 days before the window, which the first check would have *accepted* (it had a 2-day grace; the sub-editor didn't). Two parts of the same system applying different rules = inconsistent results. Fix: define the window once (`EARLIEST`) and use it everywhere. Same run: "the company must be the actor" was too literal — it rejected Cognizant committing 25,000 staff to OpenAI. Loosened to "a principal party (actor, or named party to a deal)". Tuning guardrails is iterative: too loose lets junk in, too tight throws real news out — you only find the line by running it on real data.
+
+**Prompts are requests, code is enforcement** — Told the Scout "no subsidiaries of companies I track"; it proposed Leonardo.Ai ("now acquired by Canva") anyway, twice. So a code check now drops any candidate whose description says acquired/owned/part-of AND names a tracked company. Pattern seen all session: anything that *must* hold goes in code; the prompt just makes violations rarer.
+
+**Run-to-run variance (non-determinism)** — Two runs over the same week gave different lists: the NEXTDC AU$715M stake bid appeared in run 1 and not run 2. Each run is a *sample* — the model picks different searches and different results. Mitigations: the weekly cadence plus the 2-day grace give stories more than one chance to be caught; more searches per batch would help but cost more. Worth knowing before you trust any single AI-generated report as complete: good at "here's what moved", not a guarantee of "nothing else did".
+
+Quality across the three dry runs: run 1 = 17 items, 6 weak or wrong sources; run 3 (with source check + sub-editor) = 16 items, all linked to a specific article (OpenAI's own site, Bloomberg, GlobeNewswire, Databricks' blog), "why it matters" lines specific instead of generic. Cost rose $1.69 → $2.03 (~$8–9/month). That's the quality/cost trade made on purpose.

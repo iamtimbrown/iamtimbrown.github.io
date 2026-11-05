@@ -13,3 +13,6 @@ secrets.env
 
 # macOS junk
 .DS_Store
+
+# The private AI tracker is its own (private) repo — never publish it here
+ai-tracker/

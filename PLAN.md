@@ -110,11 +110,98 @@ cloud-vs-on-prem, sovereign cloud spectrum, open-weight vs. closed + weights,
 neoclouds (own GPUs, colo not concrete, debt/circular financing), colocation
 operators + PE ownership, and power as the binding constraint.
 
-### ▶️ Session 8 — Ship a useful agent (NEXT)
-Something real, e.g. a morning digest agent that checks sources and emails a
-summary. Deploy so it runs without the laptop.
-Boardroom layer: full picture of what an AI build takes; RAG, evals,
-fine-tuning vs. prompting folded in along the way.
+### ✅ Session 8 — Ship a useful agent (deploy on a schedule) (DONE)
+Built digest.py — a morning-brief agent that fetches 7 RSS feeds (AI + markets,
+tuned to Tim's holdings: big tech, semis, storage/memory), has Sonnet write a
+structured brief (Top Story + AI Research/Business/Policy + Markets Holdings/Macro,
+with clickable links), and DELIVERS it two ways: writes digest.html (published at
+iamtimbrown.github.io/digest.html) and emails it via Gmail SMTP. Same agent loop +
+guardrails as agent2.py, plus a model fallback (Sonnet -> Haiku). Then DEPLOYED it
+on GitHub Actions (.github/workflows/digest.yml): runs daily at 07:00 SGT
+(cron "0 23 * * *" in UTC) on GitHub's servers, laptop closed, and auto-commits the
+new digest.html back to the repo. Secrets (API key, Gmail app password) live in
+GitHub Secrets; locally in gitignored key.txt / secrets.env.
+Key concepts: deployment, environment variables, secrets management, app passwords +
+token scopes (least privilege), SMTP, cron, GitHub Actions (workflow/runner/triggers/
+permissions), YAML, RSS + source diversity, model choice as cost lever + fallback,
+"works on my machine" (env/secret parity). All defined in glossary.md.
+Debugged live (both great lessons): the PAT needed the `workflow` scope before it
+could push the workflow file; and the first cloud run 401'd because the API-key
+secret had a stray character — re-pasted cleanly, then went green.
+
+To run locally: cd ~/Documents/"Claude project" then python3 digest.py
+To run in the cloud on demand: GitHub -> Actions -> Morning Brief -> Run workflow.
+
+HOUSEKEEPING: Tim's Anthropic API key appeared in screenshots during this session —
+consider rotating it (generate a new key in the Console, update key.txt AND the
+ANTHROPIC_API_KEY GitHub secret, delete the old key). Not urgent, doesn't affect
+anything working now.
+
+### ✅ Session 9 — Build a discovery agent (the Scout) (DONE)
+Built scout.py — an AI-ecosystem SCOUT that DISCOVERS rather than summarises. Reads
+the thesis + companies already tracked (watchlist.json: 24 starter names across 7
+stack layers), searches the live web via Anthropic's built-in web_search tool (biased
+to Australia/APAC with user_location), judges what fits and isn't already tracked, and
+proposes new companies for approval (a/s/q each). Approved ones are WRITTEN BACK into
+watchlist.json — the agent edits its own state. First run: 6 web searches -> 10 real
+candidates, 9 kept, heavily Australian (Heidi Health, Lyrebird, Lorikeet, Neara,
+BrainChip, Q-CTRL, Appen, Andromeda Robotics, Groq). Watchlist now 33.
+Key concepts: Monitor vs Scout, web search as a (server-side) tool, LLM-as-filter,
+persistent state (read + write), human-in-the-loop approval, config-vs-engine
+separation. All defined in glossary.md.
+
+Resolved at session start (good ops lessons): the daily digest had been silently
+FAILING since Oct 17. Root cause was the Anthropic API KEY EXPIRING on Oct 17 (not
+credit — the 401 "invalid x-api-key" gave it away). Fixed by minting a new NON-EXPIRING
+key and updating the GitHub secret; also topped credit $0.01 -> $35 and enabled
+auto-reload so it can't silently die again. New machine (MacBook Air): installed Xcode
+command-line tools + the anthropic SDK, put a fresh local key in key.txt.
+
+To run: cd ~/Documents/"Claude project" then python3 scout.py
+Files: scout.py (agent), watchlist.json (its state), proposals.json (last run's raw output).
+
+TODO: tracker files (scout.py, watchlist.json) not yet committed/pushed to GitHub —
+the local PAT (Session-3 token) expired and needs regenerating first. Not blocking;
+Scout runs fine locally.
+
+### ✅ Session 10 — Make the tracker self-running (DONE)
+Built ai-tracker/ — its own folder AND its own PRIVATE GitHub repo (the website repo
+is public; the watchlist holds private notes; parent .gitignore excludes it).
+  - tracker.py — the weekly robot. MONITOR: checks the watchlist in batches of 6 via
+    web_search, keeps only material news from the last 7 days (guardrails drop
+    off-list / undated / out-of-window / sourceless items), de-dupes against
+    monitor_state.json. SCOUT: proposes 5 new names, parks them in pending.json (never
+    auto-adds; skips nothing already tracked, pending or rejected). Sends ONE email:
+    "What moved" + "New candidates" + health check + run cost. Exits 1 on failure so
+    GitHub flags it red. `--dry-run` = no email, no state saved.
+  - approve.py — Tim's half: git pull, then a/s/l/q each pending candidate (a -> watchlist,
+    s -> "rejected" forever, l -> stays pending), then commits + pushes.
+  - scout.py, watchlist.json, proposals.json moved in here; scout.py patched to find
+    key.txt / secrets.env in the parent folder.
+  - .github/workflows/tracker.yml — Mondays 07:00 SGT (cron "0 23 * * 0" UTC), commits
+    its state files back. Secrets needed in the NEW repo: ANTHROPIC_API_KEY,
+    GMAIL_ADDRESS, GMAIL_APP_PASSWORD, (optional) TRACKER_TO.
+Tested all guardrails with mocks (pause_turn, old/off-list/sourceless news, parse failure,
+crashed batch, de-dupe across runs, reject memory). Local git repo initialised + files staged.
+
+Dry runs: #1 $1.69 (6 of 17 weak/wrong sources) -> fixes -> #3 $2.03, 16 items all article-sourced. Fixes: source-quality check + a "second look" sub-editor that re-searches weak-linked items and keeps only verified ones (dropped ones listed in the email); one shared date window w/ 2-day grace; partnerships count for both parties; scout drops subsidiaries of tracked cos in code; added "layoffs or restructuring" signal.
+DEPLOYED 5 Nov 2026: new PAT ("laptop push nov-2026", classic, repo+workflow, 90 days —
+expires ~3 Feb 2027, regenerate before then); private repo github.com/iamtimbrown/ai-tracker
+with 3 secrets (ANTHROPIC_API_KEY, GMAIL_ADDRESS, GMAIL_APP_PASSWORD); pushed; first manual
+cloud run went green and the email arrived. Now runs every Monday 07:00 SGT on its own.
+Each cloud run commits its state back, so on the laptop always `git pull` before editing
+(approve.py does this automatically).
+
+TODO: rotate the Anthropic API key (it appeared in a screenshot) — new key in Console ->
+key.txt -> ANTHROPIC_API_KEY secret in BOTH repos -> delete old key. Set git identity on the
+new MacBook (git config --global user.name / user.email). Review the 5 waiting candidates
+with approve.py.
+
+To run: cd ~/Documents/"Claude project"/ai-tracker then python3 tracker.py --dry-run
+Approve candidates: python3 approve.py (same folder)
+
+### Next — Session 11 options
+RAG in practice; MCP; or refine the investment digest (deeper, portfolio-aware).
 
 ### Later / optional
 - Richer redesign of the homepage (Claude builds it, Tim ships it)
