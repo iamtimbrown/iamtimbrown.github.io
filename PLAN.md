@@ -195,16 +195,24 @@ Each cloud run commits its state back, so on the laptop always `git pull` before
 Tidy-ups 6 Nov: Anthropic key ROTATED (new non-expiring key "nov-2026" in key.txt and in both
 repos' ANTHROPIC_API_KEY secret; old "digest" key + two expired keys deleted; verified locally
 and via a manual Morning Brief run). Both schedules moved off the hour to 06:47 SGT (GitHub was
-delaying 7:00 runs to 10-11am). Still to do: set git identity on the MacBook; review the 5
+delaying 7:00 runs to 10-11am). git identity set on the MacBook. Still to do: review the 5
 waiting candidates with approve.py.
 
 To run: cd ~/Documents/"Claude project"/ai-tracker then python3 tracker.py --dry-run
 Approve candidates: python3 approve.py (same folder)
 
-### ▶️ Session 11 — NEXT: the Opportunity Radar
+### ▶️ Session 11 — IN PROGRESS: the Opportunity Radar
 A weekly agent built on the Session 10 tracker (schedule, email, fact-check, de-dupe memory).
-Full brief, targeting and the parallel "Reinvention" track are in PRIVATE_NOTES.md — kept
-out of git because this repo is public. Read that file at the start of Session 11.
+Built 6 Nov 2026 in its own private folder (opportunity-radar/, gitignored here). Status,
+deploy steps and the parallel "Reinvention" track are in PRIVATE_NOTES.md — kept out of git
+because this repo is public. Read that file at the start of the next session.
+New concepts: config-driven hunts, fit scoring with code-enforced thresholds, deterministic
+filters after the LLM, entity-level de-dupe (company + trigger, not just URL).
+
+⚠️ HOUSEKEEPING (do before 30 Nov 2026): the model "claude-sonnet-4-5-20250929" used by
+digest.py, scout.py and tracker.py reaches END-OF-LIFE on 30 Nov 2026 — both scheduled
+jobs will start failing. Change MODEL to "claude-sonnet-5-5" in each, run once locally,
+commit + push both repos. (The Radar already uses claude-sonnet-5-5.)
 
 ### Other options (later)
 RAG in practice — best done on business documents, for interview credibility (personal RAG

@@ -212,7 +212,7 @@ Output ONLY the Markdown, with nothing before or after it."""
 # itself. Model choice + fallback are your cost and reliability levers.
 # =============================================================================
 
-PRIMARY_MODEL = "claude-sonnet-4-5-20250929"   # richer synthesis for a brief you read
+PRIMARY_MODEL = "claude-sonnet-5-5"   # richer synthesis for a brief you read
 FALLBACK_MODEL = "claude-haiku-4-5-20251001"   # cheap, dependable safety net
 MAX_STEPS = 14                                 # circuit breaker: enough for 7 feeds
 
