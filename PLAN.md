@@ -192,16 +192,23 @@ cloud run went green and the email arrived. Now runs every Monday 07:00 SGT on i
 Each cloud run commits its state back, so on the laptop always `git pull` before editing
 (approve.py does this automatically).
 
-TODO: rotate the Anthropic API key (it appeared in a screenshot) — new key in Console ->
-key.txt -> ANTHROPIC_API_KEY secret in BOTH repos -> delete old key. Set git identity on the
-new MacBook (git config --global user.name / user.email). Review the 5 waiting candidates
-with approve.py.
+Tidy-ups 6 Nov: Anthropic key ROTATED (new non-expiring key "nov-2026" in key.txt and in both
+repos' ANTHROPIC_API_KEY secret; old "digest" key + two expired keys deleted; verified locally
+and via a manual Morning Brief run). Both schedules moved off the hour to 06:47 SGT (GitHub was
+delaying 7:00 runs to 10-11am). Still to do: set git identity on the MacBook; review the 5
+waiting candidates with approve.py.
 
 To run: cd ~/Documents/"Claude project"/ai-tracker then python3 tracker.py --dry-run
 Approve candidates: python3 approve.py (same folder)
 
-### Next — Session 11 options
-RAG in practice; MCP; or refine the investment digest (deeper, portfolio-aware).
+### ▶️ Session 11 — NEXT: the Opportunity Radar
+A weekly agent built on the Session 10 tracker (schedule, email, fact-check, de-dupe memory).
+Full brief, targeting and the parallel "Reinvention" track are in PRIVATE_NOTES.md — kept
+out of git because this repo is public. Read that file at the start of Session 11.
+
+### Other options (later)
+RAG in practice — best done on business documents, for interview credibility (personal RAG
+over CVs judged low value: the CV and pitches already exist). MCP. Refine the investment digest.
 
 ### Later / optional
 - Richer redesign of the homepage (Claude builds it, Tim ships it)

@@ -8,8 +8,10 @@ name: Morning Brief
 on:
   schedule:
     # Cron = a scheduler. Five fields: minute hour day month weekday.
-    # GitHub runs cron in UTC. 23:00 UTC = 07:00 in Singapore (UTC+8).
-    - cron: "0 23 * * *"        # every day at 7am your time
+    # GitHub runs cron in UTC (Singapore is UTC+8).
+    # Not on the hour: GitHub delays on-the-hour jobs badly (we saw 7am runs land at 10-11am).
+    # 22:47 UTC = 06:47 Singapore.
+    - cron: "47 22 * * *"       # every day at 6:47am your time
   workflow_dispatch:            # ALSO lets you run it by hand from the Actions tab
 
 permissions:
