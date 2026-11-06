@@ -201,18 +201,17 @@ waiting candidates with approve.py.
 To run: cd ~/Documents/"Claude project"/ai-tracker then python3 tracker.py --dry-run
 Approve candidates: python3 approve.py (same folder)
 
-### ▶️ Session 11 — IN PROGRESS: the Opportunity Radar
+### ✅ Session 11 — the Opportunity Radar (DONE)
 A weekly agent built on the Session 10 tracker (schedule, email, fact-check, de-dupe memory).
-Built 6 Nov 2026 in its own private folder (opportunity-radar/, gitignored here). Status,
+Built + DEPLOYED 6 Nov 2026 in its own private repo (opportunity-radar/, gitignored here); runs
+Mondays 07:17 SGT. Status,
 deploy steps and the parallel "Reinvention" track are in PRIVATE_NOTES.md — kept out of git
 because this repo is public. Read that file at the start of the next session.
 New concepts: config-driven hunts, fit scoring with code-enforced thresholds, deterministic
 filters after the LLM, entity-level de-dupe (company + trigger, not just URL).
 
-⚠️ HOUSEKEEPING (do before 30 Nov 2026): the model "claude-sonnet-4-5-20250929" used by
-digest.py, scout.py and tracker.py reaches END-OF-LIFE on 30 Nov 2026 — both scheduled
-jobs will start failing. Change MODEL to "claude-sonnet-5-5" in each, run once locally,
-commit + push both repos. (The Radar already uses claude-sonnet-5-5.)
+✅ Model migration done 6 Nov: digest.py, scout.py (and so tracker.py) moved from
+claude-sonnet-4-5 (end-of-life 30 Nov 2026) to claude-sonnet-5-5; tested and pushed in both repos.
 
 ### Other options (later)
 RAG in practice — best done on business documents, for interview credibility (personal RAG
