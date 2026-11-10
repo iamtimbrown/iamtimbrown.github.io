@@ -213,8 +213,29 @@ filters after the LLM, entity-level de-dupe (company + trigger, not just URL).
 ✅ Model migration done 6 Nov: digest.py, scout.py (and so tracker.py) moved from
 claude-sonnet-4-5 (end-of-life 30 Nov 2026) to claude-sonnet-5-5; tested and pushed in both repos.
 
+### ▶️ NEXT — the Product Track: "full AI stack in practice" (Sessions 12+)
+Shift of goal: Sessions 1-11 built agents that serve ME. The product track builds a small real
+SaaS product that OTHER people log into and pay for — the layer around the AI that real products
+need. Practice product: an "early signals" intelligence app (who's raising, entering a market or
+appointing a regional head), reusing the Radar engine so the new learning is everything around it.
+Each session still ends with something working + the boardroom layer.
+
+  12. A real web app — pages + a form to describe what you're looking for (replaces hand-editing
+      a JSON config). Concepts: frontend vs backend, routes, HTTP, web frameworks.
+  13. A database — store each user's profile and results. Concepts: tables, SQL, schema.
+  14. User accounts — sign-up/login, passwords done properly, "Sign in with Google".
+      Concepts: authentication vs authorisation, sessions, OAuth, security basics.
+  15. Deploy for others — hosted app, real URL, a weekly job per user. Concepts: PaaS hosting,
+      background workers, multi-tenancy.
+  16. Payments — Stripe subscriptions in test mode. Concepts: billing, webhooks, unit economics
+      (AI COGS ~$2/user/week -> what must it cost?).
+  17. Run it reliably — monitoring, alerts, per-user cost caps, privacy. Concepts: observability,
+      SLAs, data protection (Australian Privacy Act).
+  18. Five real users — feedback, usage, pricing test. Concepts: product-market fit, retention.
+Roughly 8-12 sessions. Optional side quest first: a short Radar tuning pass (see private notes).
+
 ### Other options (later)
-RAG in practice — best done on business documents, for interview credibility (personal RAG
+RAG and MCP can slot into the product track later. RAG in practice — best done on business documents, for interview credibility (personal RAG
 over CVs judged low value: the CV and pitches already exist). MCP. Refine the investment digest.
 
 ### Later / optional
