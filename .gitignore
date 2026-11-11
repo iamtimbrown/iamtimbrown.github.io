@@ -22,3 +22,6 @@ PRIVATE_NOTES.md
 
 # The Opportunity Radar is its own PRIVATE repo — never publish it here
 opportunity-radar/
+
+# Early Signals web app — its own (private) repo later; holds users' profiles
+signals-app/

@@ -213,7 +213,7 @@ filters after the LLM, entity-level de-dupe (company + trigger, not just URL).
 ✅ Model migration done 6 Nov: digest.py, scout.py (and so tracker.py) moved from
 claude-sonnet-4-5 (end-of-life 30 Nov 2026) to claude-sonnet-5-5; tested and pushed in both repos.
 
-### ▶️ NEXT — the Product Track: "full AI stack in practice" (Sessions 12+)
+### ▶️ The Product Track: "full AI stack in practice" (Sessions 12+)
 Shift of goal: Sessions 1-11 built agents that serve ME. The product track builds a small real
 SaaS product that OTHER people log into and pay for — the layer around the AI that real products
 need. Practice product: an "early signals" intelligence app (who's raising, entering a market or
@@ -233,6 +233,30 @@ Each session still ends with something working + the boardroom layer.
       SLAs, data protection (Australian Privacy Act).
   18. Five real users — feedback, usage, pricing test. Concepts: product-market fit, retention.
 Roughly 8-12 sessions. Optional side quest first: a short Radar tuning pass (see private notes).
+
+### 🔨 Session 12 — A real web app (BUILT + TESTED 10 Nov; Tim to run it in his browser)
+Built signals-app/ — "Early Signals", a Flask web app (gitignored here; own private repo in
+Session 15). Pages + a form to describe what you're looking for; saving it writes the SAME config
+shape radar.py reads, so the engine is unchanged. Routes: GET / (profiles), GET+POST /new (form),
+GET /p/<slug> (view + "under the hood" config), GET+POST /p/<slug>/edit, GET /p/<slug>.json (API).
+  - app.py — the BACKEND: form choices as config (locations -> match keywords, seniority levels,
+    5 signal-hunt templates filled with each user's places + sectors), validate(), build_config(),
+    storage = one JSON file per profile in profiles/ (crude on purpose — Session 13 = database).
+  - templates/ (base, index, form, view, 404) + static/style.css — the FRONTEND (Jinja templates).
+  - test_app.py — 26 tests with Flask's test client: pages, validation (400 + answers kept),
+    POST -> redirect -> GET, edit, the JSON API, security (path tricks, HTML escaping), and
+    ENGINE COMPATIBILITY: radar.py's own prompt + filters run on the form's output.
+Key concepts: frontend vs backend, HTTP (request/response, GET vs POST, status codes 200/302/
+400/404), routes, web framework (Flask), templates, form validation ("never trust the browser"),
+POST-redirect-GET, API = same data without the HTML, debug mode. All in glossary.md.
+
+To run: cd ~/Documents/"Claude project"/signals-app
+        pip3 install flask        (once)
+        python3 app.py            then open http://localhost:5050   (Ctrl+C to stop)
+Tests:  python3 test_app.py
+Port 5050, not 5000: macOS AirPlay Receiver squats on 5000.
+Tim's exercise: fill the form in as yourself, then open "Under the hood" and compare it with
+opportunity-radar/profile.json. Then: git init + first commit inside signals-app/ (on the Mac).
 
 ### Other options (later)
 RAG and MCP can slot into the product track later. RAG in practice — best done on business documents, for interview credibility (personal RAG

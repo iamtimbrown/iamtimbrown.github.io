@@ -314,3 +314,37 @@ Quality across the three dry runs: run 1 = 17 items, 6 weak or wrong sources; ru
 **Key rotation** — Replacing a secret that may have been exposed: make a new key, update every place that uses it (key.txt locally + the secret in each GitHub repo), TEST it works (local script, then one cloud run), and only then delete the old key. Order matters — delete first and everything breaks until you finish. Done 6 Nov after a key appeared in a screenshot.
 
 **Scheduled jobs run late on the hour** — GitHub's scheduler is overloaded at :00 because everyone picks round times; our "7am" brief was actually arriving at 10–11am. Fix: pick an odd minute (06:47). A general lesson — shared infrastructure gets congested at the obvious times.
+
+---
+
+## Session 12 — A real web app (Early Signals)
+
+**Frontend vs backend** — The *frontend* is what runs in the browser: the HTML page, its styling (CSS), the form you type into. The *backend* is the program on the server (here: app.py on your laptop) that receives requests, applies the rules, stores data and sends pages back. Rule of thumb: the frontend is for convenience, the backend is where the truth and the rules live.
+
+**HTTP (request / response)** — The language browsers and servers speak. Every click is a *request* (a method + a path, e.g. `GET /p/tim`), and every answer is a *response* (a status code + content, usually HTML or JSON). Each request stands alone — the server doesn't "remember" you between clicks unless something is added to make it (that's *sessions*, Session 14).
+
+**GET vs POST** — The two methods you'll see most. GET = "show me something" (safe to repeat; it's what typing a URL does). POST = "here is some data, do something with it" (submitting a form). A form with `method="post"` sends its fields to the backend in the body of the request.
+
+**Status codes** — The three-digit number on every response. 200 = OK. 302 = "go over there instead" (a redirect). 400 = "your request was bad" (e.g. the form failed validation). 404 = "no such page". 500 = "the server broke". Monitoring in Session 17 is largely counting these.
+
+**Route** — A rule mapping a method + URL path to a function in the backend. `@app.route("/p/<slug>")` means "when someone asks for /p/anything, run this function with slug = anything". A web app is mostly a list of routes.
+
+**Web framework (Flask)** — A library that handles the plumbing of HTTP — listening on a port, parsing requests, routing, templates — so you only write the parts specific to your product. Flask is small and Python; Django (Python), Rails (Ruby), Express/Next.js (JavaScript) are the other common choices. The concepts carry across all of them.
+
+**Template** — An HTML file with blanks that the backend fills in for each request (`{{ a.name }}`, `{% for h in hunts %}`). Flask's template language is Jinja. Templates *escape* what they insert by default, so if a user types `<script>` into a field it is shown as text, not run — this blocks a whole class of attacks (XSS, cross-site scripting).
+
+**Form validation — "never trust the browser"** — The HTML has `required` on some fields, which stops honest users submitting a blank form. But anyone can send a raw HTTP request that never touches your page. So every rule is re-checked in the backend (`validate()`); if anything fails, the form comes back with a 400, the errors highlighted and the answers still filled in, so nothing typed is lost.
+
+**POST → redirect → GET** — After a successful save, the backend doesn't return a page directly; it replies "302, go to /p/tim". The browser then does a normal GET. Result: pressing refresh just reloads the profile instead of re-submitting the form (the "Confirm form resubmission?" problem). Standard practice on every serious site.
+
+**API (the same data without the HTML)** — `/p/tim` returns a page for humans; `/p/tim.json` returns the same profile as JSON for programs. That second kind of endpoint is an API. Most products are an API first, with the website as just one of its clients (alongside phone apps, partner integrations — and AI agents).
+
+**Config generated, not hand-written** — The form's real job is to produce the same profile.json the Radar engine already reads. The engine didn't change at all — the test proves radar.py's own prompt and filters run on the form's output. This is the config-vs-engine separation from Session 9 paying off: because the engine reads config, you can put any interface in front of it (a form today, a chat or an admin console later).
+
+**Templates per user (one engine, many users)** — The signal hunts are written once as templates — "{sectors} companies entering {where}" — and filled with each user's answers. That's how one engine can serve a thousand users without anyone writing a thousand prompts. It's the first real step to *multi-tenancy* (Session 15).
+
+**Slug + path safety** — A slug is the URL-friendly version of a name ("Tim Brown!" → `tim-brown`). Here it's also the filename, so it's restricted to a–z, 0–9 and "-": otherwise someone could request `/p/../../secrets` and read files outside the app's folder (*path traversal*). Lesson: anything from a user that touches a filename, a database query or a shell command must be cleaned first.
+
+**Debug mode / localhost** — `app.run(debug=True)` reloads on every save and shows errors in the browser — great on a laptop, dangerous in public (it can expose your code). `127.0.0.1:5050` means "only this machine, port 5050": nobody else on the network can reach it yet. Going public properly is Session 15.
+
+**Boardroom layer** — (1) The AI is a small part of an AI product: today was 100% "the layer around it" and that's typical — the interface, rules, storage and security are most of the build. (2) A form beats a config file because it *constrains*: users can only pick valid options, so the engine gets clean input and support costs fall. (3) An API-first design is what lets partners and agents integrate — a commercial asset, not just plumbing. (4) Today's storage (one file per user) breaks with two people saving at once and can't answer "which users want Singapore?" — that's exactly why Session 13 brings in a database.
