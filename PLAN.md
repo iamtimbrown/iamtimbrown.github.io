@@ -234,7 +234,7 @@ Each session still ends with something working + the boardroom layer.
   18. Five real users — feedback, usage, pricing test. Concepts: product-market fit, retention.
 Roughly 8-12 sessions. Optional side quest first: a short Radar tuning pass (see private notes).
 
-### 🔨 Session 12 — A real web app (BUILT + TESTED 10 Nov; Tim to run it in his browser)
+### ✅ Session 12 — A real web app (DONE 11 Nov)
 Built signals-app/ — "Early Signals", a Flask web app (gitignored here; own private repo in
 Session 15). Pages + a form to describe what you're looking for; saving it writes the SAME config
 shape radar.py reads, so the engine is unchanged. Routes: GET / (profiles), GET+POST /new (form),
@@ -255,8 +255,18 @@ To run: cd ~/Documents/"Claude project"/signals-app
         python3 app.py            then open http://localhost:5050   (Ctrl+C to stop)
 Tests:  python3 test_app.py
 Port 5050, not 5000: macOS AirPlay Receiver squats on 5000.
-Tim's exercise: fill the form in as yourself, then open "Under the hood" and compare it with
-opportunity-radar/profile.json. Then: git init + first commit inside signals-app/ (on the Mac).
+Done 11 Nov: Tim ran it, saved his own profile, watched the HTTP log (200/302/304/400/404), tried
+the <script> test, ran the tests, made signals-app/'s first commit. Role types updated to drop
+"alliances"/GSI and add AI-stack partnerships. Lesson: the public repo gets daily robot commits
+(Morning Brief), so `git pull --rebase` before `git push`.
+NEXT (before Session 13): Tim reviews the form critically, as if he were one of the 5 test users.
+  Start it: cd ~/Documents/"Claude project"/signals-app  then  python3 app.py  -> localhost:5050
+  Ask: is each question clear to a stranger? anything missing? anything unnecessary? do the options
+  fit? does "What the engine will hunt for" describe what you'd actually want found? Also: which of
+  the 4 possible customer groups is it for (job seekers, recruiters, vendor sales/partnership people,
+  investors)? — that choice shapes the questions. Bring notes; Claude makes the changes.
+  How Tim wants sessions run: start each with WHAT we're building, WHY, and WHAT TO WATCH FOR.
+THEN: Session 13 — a database.
 
 ### Other options (later)
 RAG and MCP can slot into the product track later. RAG in practice — best done on business documents, for interview credibility (personal RAG

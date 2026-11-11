@@ -331,7 +331,7 @@ Quality across the three dry runs: run 1 = 17 items, 6 weak or wrong sources; ru
 
 **Web framework (Flask)** — A library that handles the plumbing of HTTP — listening on a port, parsing requests, routing, templates — so you only write the parts specific to your product. Flask is small and Python; Django (Python), Rails (Ruby), Express/Next.js (JavaScript) are the other common choices. The concepts carry across all of them.
 
-**Template** — An HTML file with blanks that the backend fills in for each request (`{{ a.name }}`, `{% for h in hunts %}`). Flask's template language is Jinja. Templates *escape* what they insert by default, so if a user types `<script>` into a field it is shown as text, not run — this blocks a whole class of attacks (XSS, cross-site scripting).
+**Template** — An HTML file with blanks that the backend fills in for each request (marked with double curly brackets, e.g. a blank for the user's name, or a loop that repeats a line for each hunt). Flask's template language is Jinja. Templates *escape* what they insert by default, so if a user types `<script>` into a field it is shown as text, not run — this blocks a whole class of attacks (XSS, cross-site scripting).
 
 **Form validation — "never trust the browser"** — The HTML has `required` on some fields, which stops honest users submitting a blank form. But anyone can send a raw HTTP request that never touches your page. So every rule is re-checked in the backend (`validate()`); if anything fails, the form comes back with a 400, the errors highlighted and the answers still filled in, so nothing typed is lost.
 
