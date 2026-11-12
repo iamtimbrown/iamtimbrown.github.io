@@ -266,7 +266,29 @@ NEXT (before Session 13): Tim reviews the form critically, as if he were one of 
   the 4 possible customer groups is it for (job seekers, recruiters, vendor sales/partnership people,
   investors)? — that choice shapes the questions. Bring notes; Claude makes the changes.
   How Tim wants sessions run: start each with WHAT we're building, WHY, and WHAT TO WATCH FOR.
+FORM REVIEW DONE (12 Nov) — Tim reviewed it as a tester would. Changes: "New radar profile"; "Your
+  background" with paste-your-LinkedIn/CV hint, 100-300 word guide, live word counter (first frontend JS),
+  400-word cap enforced in the backend; locations widened to all APAC, grouped by sub-region with
+  "All of ..." buttons; role types expanded + grouped (channel, strategic accounts/CS, solutions/pre-sales,
+  strategy/corp dev) with old names mapped so saved profiles still open; sectors split into TWO questions
+  (what the company sells / which industries it serves + "anything more specific"); "Pivotal partnerships
+  that create new opportunities" (display labels now separate from engine hunt names); "Which early
+  signals matter to you?"; generic example text. Visual: executive navy/teal theme + original radar mark,
+  slow sweep animation, styled content boxes. Tests: 31.
+  OPEN: reword the other signal labels to match the home page ("Companies on a growth trajectory", ...).
+REMINDER for Tim: on your own radar profile (Edit), move "Thailand" to the Bangkok tick box, tick your
+  tech-company types + Financial services, then save.
 THEN: Session 13 — a database.
+LANDING PAGE (12 Nov): app renamed "Opportunity Radar"; home page now carries Tim's value proposition
+  (headline "See the opening before it's advertised", What it watches for / What you get / How it works).
+  Target customer chosen: senior job seekers. The page describes the FINISHED product — its promises are
+  the acceptance checklist before inviting the 5 testers: weekly Monday email per user, ranked by fit;
+  who-to-approach + fit angle per lead; strict role filter; source-checked; 30-day no-repeat + in-play
+  flag; profile edits flow into the next email (Sessions 13-15 must deliver these).
+  FEATURE TO ADD (tuning pass): a TRUSTED-SOURCES list — have the Radar favour named outlets per market
+  (e.g. AFR, DealStreetAsia, Business Wire/GlobeNewswire, Seek, MyCareersFuture) via web_search's
+  allowed/priority domains, so the landing page can honestly name them. Watch: paywalled outlets
+  may only yield snippets; measure hit rate on a dry run before promising any outlet by name.
 
 ### Other options (later)
 RAG and MCP can slot into the product track later. RAG in practice — best done on business documents, for interview credibility (personal RAG
