@@ -213,6 +213,40 @@ filters after the LLM, entity-level de-dupe (company + trigger, not just URL).
 ✅ Model migration done 6 Nov: digest.py, scout.py (and so tracker.py) moved from
 claude-sonnet-4-5 (end-of-life 30 Nov 2026) to claude-sonnet-5-5; tested and pushed in both repos.
 
+### ✅ Session 13 — A database (BUILT 12 Nov — Tim's hands-on part below)
+Swapped signals-app/'s storage from one JSON file per profile to SQLite (signals.db, gitignored).
+Pages, routes and the form are unchanged; only the layer underneath moved.
+  - db.py — all the SQL. SCHEMA with 3 tables: users (slug UNIQUE, name, email [empty until
+    Session 14], answers + config as JSON, created/updated, last_email_opened_at), user_locations
+    (one row per person+place, so "who wants Singapore?" is a JOIN), leads_sent (user_id -> users
+    ON DELETE CASCADE, sent_on, kind signal|role, company, trigger, url, fit_score; indexed by
+    user+date). Functions: get/create/update/list/delete user, record_leads, recently_sent
+    (30-day no-repeat), purge_old_leads (12-month retention), mark_email_opened. Each call runs
+    as one transaction; foreign keys switched on.
+  - app.py — storage functions now call db.py; a duplicate name is caught by the DB's UNIQUE rule
+    even under a race. NEW route POST /p/<slug>/delete + "Delete profile" button (confirm box).
+  - migrate.py — copies profiles/*.json into the DB (re-runnable; skips existing; JSON files kept
+    as a backup).
+  - test_app.py — 45 tests (31 old + 14 DB: tables, columns, the Singapore JOIN, UNIQUE, no-repeat
+    window, retention purge, open tracking, delete via POST only, CASCADE).
+Tim's privacy decisions (12 Nov): add the email column now; TRACK OPENS but disclose it openly;
+keep lead history 12 MONTHS; deleting an account deletes EVERYTHING at once.
+Concepts (glossary.md): database, SQLite vs Postgres, table/row/column, schema, primary + foreign
+key, constraints, CASCADE, SQL verbs, JOIN, normalisation, transaction, index, parameterised
+queries / SQL injection, data migration, retention, open tracking.
+Still to do in Session 15: wire record_leads/recently_sent into the weekly job; build the tracking
+pixel; write the privacy note (disclose open tracking, 12-month retention, delete-everything).
+
+To run: cd ~/Documents/"Claude project"/signals-app  then  python3 migrate.py  (once), python3 app.py
+Explore: sqlite3 signals.db   (then SQL; .quit to leave)
+Tests:   python3 test_app.py
+
+### ▶️ NEXT: Session 14 — User accounts (START HERE)
+Claude: open with WHAT / WHY / WHAT TO WATCH FOR, explained simply; one Terminal command per block.
+Sign-up/login, passwords done properly (hashing), "Sign in with Google", fill users.email.
+Concepts: authentication vs authorisation, sessions/cookies, OAuth, security basics. Each user
+should only see and edit THEIR OWN profile (today anyone can open any /p/<slug>).
+
 ### ▶️ The Product Track: "full AI stack in practice" (Sessions 12+)
 Shift of goal: Sessions 1-11 built agents that serve ME. The product track builds a small real
 SaaS product that OTHER people log into and pay for — the layer around the AI that real products
@@ -275,7 +309,7 @@ FORM REVIEW DONE (12 Nov) — Tim reviewed it as a tester would. Changes: "New r
   that create new opportunities" (display labels now separate from engine hunt names); "Which early
   signals matter to you?"; generic example text. Visual: executive navy/teal theme + original radar mark,
   slow sweep animation, styled content boxes. Tests: 31.
-  OPEN: reword the other signal labels to match the home page ("Companies on a growth trajectory", ...).
+  Signal labels now match the home page (done 12 Nov).
 REMINDER for Tim: on your own radar profile (Edit), move "Thailand" to the Bangkok tick box, tick your
   tech-company types + Financial services, then save.
 THEN: Session 13 — a database.

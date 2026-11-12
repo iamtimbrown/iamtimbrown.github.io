@@ -348,3 +348,41 @@ Quality across the three dry runs: run 1 = 17 items, 6 weak or wrong sources; ru
 **Debug mode / localhost** — `app.run(debug=True)` reloads on every save and shows errors in the browser — great on a laptop, dangerous in public (it can expose your code). `127.0.0.1:5050` means "only this machine, port 5050": nobody else on the network can reach it yet. Going public properly is Session 15.
 
 **Boardroom layer** — (1) The AI is a small part of an AI product: today was 100% "the layer around it" and that's typical — the interface, rules, storage and security are most of the build. (2) A form beats a config file because it *constrains*: users can only pick valid options, so the engine gets clean input and support costs fall. (3) An API-first design is what lets partners and agents integrate — a commercial asset, not just plumbing. (4) Today's storage (one file per user) breaks with two people saving at once and can't answer "which users want Singapore?" — that's exactly why Session 13 brings in a database.
+
+## Session 13 — A database
+
+**Database** — A program (or a file plus a library) built to store data safely for many users at once and answer questions about it. Think: well-organised spreadsheet tabs with strict rules, that many people can edit at the same time without clobbering each other.
+
+**SQLite** — A full database that lives in one file (here, `signals.db`) and comes built into Python, so nothing to install or run. Good for one machine and small products. Larger, hosted products usually use **Postgres** (or MySQL) running as a separate server; the SQL is almost identical, so moving later is straightforward.
+
+**Table / row / column** — A table is one tab (`users`). A row is one record (one person). A column is one field (`email`), with a fixed type. Our tables: `users`, `user_locations`, `leads_sent`.
+
+**Schema** — The design of the tables: their names, columns, types and rules. Written once in `db.py` (`SCHEMA`). Changing a schema on a live product is a **migration**, which needs care, so it's worth thinking about the design up front.
+
+**Primary key** — The column that uniquely identifies each row, usually a number the database assigns (`id`). Other tables point at a row by its key.
+
+**Foreign key / relationship** — A column that points at a row in another table: `leads_sent.user_id` → `users.id`. "One user has many leads" is a **one-to-many** relationship. The database refuses a lead that points at a user who doesn't exist.
+
+**Constraints** — Rules the database enforces itself, so bad data can't get in whatever the code does: `NOT NULL` (must be filled), `UNIQUE` (no duplicates; this is what stops two people grabbing the same profile name at the same instant), `CHECK` (e.g. `kind` must be 'signal' or 'role').
+
+**ON DELETE CASCADE** — "When the user row is deleted, delete everything that points at it too." This is how one action deletes a person's profile, locations and lead history together, which makes the "delete everything" privacy promise reliable.
+
+**SQL** — Structured Query Language: the language for asking a database questions and changing data. The four verbs: `SELECT` (read), `INSERT` (add), `UPDATE` (change), `DELETE` (remove). Plus `WHERE` (filter), `ORDER BY` (sort), `COUNT(*)` (count), `GROUP BY` (count per group) and `JOIN` (combine tables, e.g. users + their locations).
+
+**JOIN** — Combines rows from two tables that match on a key. "Who wants Singapore?" = join `users` to `user_locations` on the user id, keep the rows where location = 'Singapore'.
+
+**Normalisation** — Storing each fact once, in its own place. Locations live in their own table (one row per person-place) rather than buried inside a blob of text, so the database can search, count and index them.
+
+**Transaction** — A group of changes that either all happen or none do. Saving a profile updates `users` *and* rewrites `user_locations`; if anything fails halfway, the whole thing is rolled back, so you never get half a save.
+
+**Index** — A sorted lookup the database keeps alongside a table so it can find rows fast (like a book's index). We index leads by user + date because "what did we send this person in the last 30 days?" is asked every week for every user.
+
+**Parameterised query / SQL injection** — Values go into SQL as `?` placeholders, never pasted into the query text. If someone types `'; DROP TABLE users; --` as their name, it's stored as an odd name rather than run as a command. SQL injection is one of the oldest and most common attacks; placeholders prevent it.
+
+**Data migration** — Moving existing data into a new structure. `migrate.py` copies each old `profiles/*.json` into the database, skips any already there (so it's safe to run twice) and leaves the old files as a backup.
+
+**Data retention** — How long you keep each kind of data, and then deleting it automatically. Our rule is 12 months of lead history (`purge_old_leads`). Privacy laws (the Australian Privacy Act, GDPR, Singapore's PDPA) expect you to keep personal data only as long as you need it.
+
+**Open tracking** — Recording when someone opens an email, usually via a tiny invisible image (a *tracking pixel*) that loads from your server. It's useful for spotting disengaged users, but it's a privacy choice, so we'll disclose it. Apple Mail's privacy protection pre-loads images, which inflates open rates, so treat opens as a rough signal. Clicks are more reliable.
+
+**Boardroom layer** — (1) Data structure is a product decision: what you can't store, you can't measure or sell, and what you do store you must protect. Every column is a trade-off between usefulness and privacy. (2) "Where does customer data live, who can access it, how long do you keep it, and how do you delete it?" are among the first questions a CTO, an enterprise customer's security review or a regulator asks. We now have a one-line answer to each. (3) Let the database enforce the rules (UNIQUE, CASCADE, transactions) rather than trusting app code; it's the last line of defence. (4) SQLite now, Postgres when hosted (Session 15). Same concepts, different scale.
