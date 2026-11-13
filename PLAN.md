@@ -241,11 +241,114 @@ To run: cd ~/Documents/"Claude project"/signals-app  then  python3 migrate.py  (
 Explore: sqlite3 signals.db   (then SQL; .quit to leave)
 Tests:   python3 test_app.py
 
-### ▶️ NEXT: Session 14 — User accounts (START HERE)
-Claude: open with WHAT / WHY / WHAT TO WATCH FOR, explained simply; one Terminal command per block.
-Sign-up/login, passwords done properly (hashing), "Sign in with Google", fill users.email.
-Concepts: authentication vs authorisation, sessions/cookies, OAuth, security basics. Each user
-should only see and edit THEIR OWN profile (today anyone can open any /p/<slug>).
+### ✅ Session 14 — User accounts (DONE 12 Nov)
+Decided (Tim, 12 Nov): email MAGIC LINK + SIGN IN WITH LINKEDIN. Covers everyone; no passwords stored.
+  - auth.py — the sign-in machinery. Magic link: 256-bit random token, only its SHA-256 HASH stored
+    (login_tokens table), 15-minute expiry, single-use (atomic UPDATE), max 3 links per address per
+    15 min. Email via the same Gmail app password as the Morning Brief (prints to the terminal if no
+    Gmail settings, or EMAIL_MODE=print). Links built from APP_BASE_URL (never the request's Host
+    header). LinkedIn = OpenID Connect: authorize -> code -> server swaps code + client secret for a
+    token -> /v2/userinfo -> sign in ONLY if email_verified is true. Secrets: env vars first, then
+    signals-app/secrets.env (gitignored), then the parent secrets.env (Gmail).
+  - app.py — signed SESSION COOKIE (secret key in gitignored .secret_key; HttpOnly, SameSite=Lax,
+    Secure once on HTTPS, 30 days). login_required (authentication) + own_profile (authorisation:
+    someone else's profile = 404). CSRF token on every POST form. New routes: /login, /login/sent,
+    /auth/magic/<token> (GET shows a Sign-in button because email scanners pre-open links; POST signs
+    in), /auth/linkedin + callback (state check), /me, POST /logout. One person = one radar; same
+    name for two people -> alex-chen-2. Home page no longer lists anyone's profiles. Delete = account
+    deleted + signed out (sign-in links go too).
+  - db.py — login_tokens table + functions; get_user_by_email, set_email; create_user takes email.
+  - claim.py — attaches an email to a pre-accounts profile (Tim's own).
+  - templates: login, login_sent, magic_confirm; account bar in base.html; CSRF fields in forms.
+  - test_app.py — 86 tests (45 old, adapted + 41 new: sign-in, hashing, single-use, expiry, rate
+    limit, no user enumeration, Host-header trick, cookie flags, CSRF, other people's profiles = 404,
+    logout, LinkedIn state/verified-email/same-account, delete removes tokens).
+Concepts (glossary.md): authentication vs authorisation, IDOR, sessions, cookies, secret key,
+passwordless, hash, tokens, link scanners, user enumeration, rate limiting, CSRF, Host header
+injection, session fixation, 404 vs 403, OAuth 2.0, OIDC, client ID/secret, redirect URI, state,
+email_verified, identity provider / SSO, build-vs-buy auth.
+
+TIM'S HANDS-ON (Session 14):
+  1. Run the tests:      cd ~/Documents/"Claude project"/signals-app   then   python3 test_app.py
+  2. Claim your profile: python3 claim.py tim-brown-global-and-apac-partnerships <your email>
+  3. Sign in by email:   python3 app.py -> localhost:5050 -> Sign in -> email arrives (real Gmail) ->
+     click -> Sign in button. Watch the terminal log: POST /login 302, GET /auth/magic 200, POST 302.
+  4. Try to break it: click the same link twice; open a private window and visit your /p/... URL.
+  5. LinkedIn: create an app at developer.linkedin.com (needs a LinkedIn Company Page to attach it to;
+     can be a simple "Opportunity Radar" page), add the product "Sign In with LinkedIn using OpenID
+     Connect", add redirect URL http://localhost:5050/auth/linkedin/callback, then put
+     LINKEDIN_CLIENT_ID=... and LINKEDIN_CLIENT_SECRET=... in signals-app/secrets.env (TextEdit,
+     plain text). Restart app.py -> the LinkedIn button appears.
+  6. Commit: git add -A  then  git commit -m "Session 14: accounts (magic link + LinkedIn)"
+DONE 12 Nov: Tim claimed his profile, signed in by email link (real Gmail), tested reuse (400),
+private window (redirect to sign-in) and sign-out; committed. LinkedIn: Company Page "Opportunity
+Radar" (linkedin.com/company/opportunity-radar-source; the plain URL was taken by another page,
+so check the name before marketing it), developer app "Opportunity Radar" with the OIDC product,
+redirect URL http://localhost:5050/auth/linkedin/callback, client ID + secret in
+signals-app/secrets.env (gitignored). Signed in with LinkedIn: consent screen showed the logo +
+name/photo/email. Logo: signals-app/static/radar-logo.png.
+Still to do in Session 15 (deploy): HTTPS + APP_BASE_URL set to the real address (Secure cookies
+switch on automatically), add the production redirect URL in LinkedIn, a privacy note.
+
+### ▶️ NEXT: Session 15 — Deploy for others (full plan agreed 13 Nov)
+Goal: 5 testers can sign in at a real https:// address, set up a radar, get a reviewed first briefing
+straight away, then a Monday email each week. Two sittings, ~1.5-2h each.
+
+KEY ARCHITECTURE DECISION (start of 15a): move SQLite -> hosted POSTGRES. On a hosting service the
+web app and the weekly job run as separate machines; a SQLite file can live on only one of them.
+A managed Postgres both can reach is the standard answer. db.py's SQL mostly carries over.
+
+15a — GET IT ONLINE
+  1. Decide: host (Render vs Railway — check current prices; avoid sleeping free tiers) + Postgres.
+  2. Production-ready code: gunicorn (real web server), debug OFF, Postgres in db.py, settings from
+     env vars, /healthz page. Tests updated and passing.
+  3. Private GitHub repo for signals-app; push.
+  4. Host: web service + Postgres; secrets in the host's settings (SIGNALS_SECRET_KEY, LinkedIn,
+     Gmail, APP_BASE_URL). Deploy-on-push (CI/CD, like Session 4).
+  5. Live https URL -> APP_BASE_URL; add live callback URL in LinkedIn (keep localhost one too).
+  6. Privacy page: what we store, open tracking disclosed, 12-month retention, delete-everything,
+     contact. Linked from footer + sign-in page; also LinkedIn app's privacy policy URL.
+  7. Sample briefing on the landing page: 3 REAL leads Tim picks from a Radar run, labelled with
+     the week, personal bits stripped.
+  7a. NAME + DOMAIN (decided 13 Nov): no domain purchase for now — use the host's free address.
+     Keep "Opportunity Radar". Revisit only if the trial shows real traction. Name research done:
+     Vantage, Foresight, Exec/Executive Edge clash with exec-recruiting firms; "Signal Radar" was the
+     cleanest, but signalradar.com is a A$14.6k premium and .io/.app/.dev are taken (check what's on
+     them first). Cheaper later options: signalradar.ai/.co, getsignalradar.com, .com.au (needs ABN).
+     Keep spend minimal throughout: this is a learning build first.
+  7b. INVITE-ONLY (Tim, 13 Nov): an allowlist of invited emails (ALLOWED_EMAILS on the host). Anyone
+     else who finds the URL can't create an account or trigger a ~US$2 briefing. Tim adds testers
+     to the list only when 15b is done and checked.
+  8. Smoke test: Tim signs in on his phone (email + LinkedIn); a second person signs in; check
+     they can't see each other.
+  CHECKPOINT: app live and shareable; no emails flowing yet.
+
+15b — THE WEEKLY ENGINE FOR EVERY USER
+  1. Engine adapter: radar.py runs from a user's config in the DB (not profile.json).
+  2. Weekly job (host cron, Mondays 06:47 SGT): loop all users; one user failing doesn't stop
+     the rest; per-user cost cap; run summary emailed to Tim.
+  3. No-repeats: recently_sent() filters, record_leads() saves what was sent; purge_old_leads()
+     monthly.
+  4. Per-user email (ranked by fit, who-to-approach + angle, source links, in-play flag). Gmail
+     SMTP is fine for 5 (limit ~500/day); note: a transactional email service (Resend/Postmark +
+     SPF/DKIM) is the scale-up path.
+  5. Open tracking pixel + disclosure line in each email.
+  6. FIRST BRIEFING ON SIGN-UP: 30-day look-back; goes to Tim for approval first; "quiet week" honesty
+     if few strong leads.
+  7. Evals before inviting: dry-run 3-4 personas (e.g. Sydney sales leader, Singapore channel head,
+     fintech partnerships director, Tim) and score against the landing-page promises.
+  8. Go live with Tim as user #1 for one Monday, then invite testers.
+  DONE = every landing-page promise checked off.
+
+AI COST DECISION (Tim, 13 Nov): run the trial WEEKLY and do it well (~US$45/month for 5 users;
+~US$80 first month incl. sign-up briefings + persona dry-runs). Build the cheap-model split (Haiku
+filters, Sonnet writes) into 15b from the start. Other levers (shared searches across users,
+fortnightly, fewer hunts) assessed only if it becomes ongoing — shared searches = Session 16 lesson.
+Costs: hosting + Postgres ~US$10-25/month (confirm at 15a); AI ~US$2 per user per run -> ~US$40/month
+for 5 testers + ~US$2 per sign-up briefing. Feeds Session 16 (pricing / unit economics).
+Concepts: PaaS, production web server (WSGI/gunicorn), environment config, managed database /
+Postgres, stateless app servers, health checks, CI/CD, background jobs / cron workers, multi-tenancy,
+fault isolation, per-tenant cost caps, email deliverability (SPF/DKIM), privacy notice.
 
 ### ▶️ The Product Track: "full AI stack in practice" (Sessions 12+)
 Shift of goal: Sessions 1-11 built agents that serve ME. The product track builds a small real

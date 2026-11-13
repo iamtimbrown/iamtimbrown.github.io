@@ -386,3 +386,53 @@ Quality across the three dry runs: run 1 = 17 items, 6 weak or wrong sources; ru
 **Open tracking** — Recording when someone opens an email, usually via a tiny invisible image (a *tracking pixel*) that loads from your server. It's useful for spotting disengaged users, but it's a privacy choice, so we'll disclose it. Apple Mail's privacy protection pre-loads images, which inflates open rates, so treat opens as a rough signal. Clicks are more reliable.
 
 **Boardroom layer** — (1) Data structure is a product decision: what you can't store, you can't measure or sell, and what you do store you must protect. Every column is a trade-off between usefulness and privacy. (2) "Where does customer data live, who can access it, how long do you keep it, and how do you delete it?" are among the first questions a CTO, an enterprise customer's security review or a regulator asks. We now have a one-line answer to each. (3) Let the database enforce the rules (UNIQUE, CASCADE, transactions) rather than trusting app code; it's the last line of defence. (4) SQLite now, Postgres when hosted (Session 15). Same concepts, different scale.
+
+## Session 14 — User accounts
+
+**Authentication vs. authorisation** — *Authentication* = "who are you?" (proving identity: signing in). *Authorisation* = "what are you allowed to do?" (you may only see and edit YOUR profile). Different problems, different code. Most real-world data leaks are authorisation failures: the attacker signs in perfectly legitimately, then changes a number in a URL and gets someone else's data. The usual name for that bug is **IDOR** (insecure direct object reference). Before this session our app had exactly that bug: anyone could open `/p/<anyone>`.
+
+**Account / identity** — Our rule: one *verified email address* = one person = one account = one radar. Both sign-in methods end at a verified email, which is how the same person signing in with LinkedIn on Monday and an email link on Tuesday lands in the same account.
+
+**Session** — How a website remembers you between clicks. HTTP itself has no memory: every request arrives as a stranger. After sign-in the server gives the browser a *session cookie*, and the browser shows it with every request.
+
+**Cookie** — A small piece of data a website asks your browser to store and send back on every visit. Ours is *signed* with a secret key (like a tamper-proof wristband): the browser can show it but can't edit it to say "I'm someone else". Settings that matter: **HttpOnly** (page JavaScript can't read it), **SameSite=Lax** (other websites' forms don't get it sent along), **Secure** (only sent over HTTPS, switched on once we're online).
+
+**Secret key** — The key that signs session cookies. Whoever has it can forge "signed in as anyone" cookies, so it's treated like a password: gitignored file locally, a hosting secret in production.
+
+**Passwordless / magic link** — Sign in by clicking a one-time link emailed to you. No password stored means no password to leak, reuse or reset. It proves you control the inbox, which is all "forgot password" ever proved anyway. Ours: long random token, only its **hash** stored, expires in 15 minutes, works once, max 3 per address per 15 minutes.
+
+**Hash** — A one-way fingerprint of some data (we use SHA-256). Easy to compute from the original, impossible to reverse. We store the hash of each sign-in token, so a stolen database contains no usable links. (Passwords, when products do store them, are hashed with deliberately *slow* algorithms such as bcrypt or Argon2, so guessing is expensive.)
+
+**Token** — A random secret that stands for something: a sign-in link, an access grant, an anti-forgery check. Strength comes from length and randomness: ours are 256 bits, so they can't be guessed.
+
+**Single-use + expiry** — Two limits that shrink the damage if a link leaks (forwarded email, shared screen, browser history). "Check unused and mark used" happens in one database statement so two clicks at the same instant can't both win (a *race condition*).
+
+**Link scanners** — Corporate email systems (Outlook Safe Links, Mimecast, etc.) open every link in an email to check it for malware. If opening our link signed you in, the scanner would spend your one-time link first. So opening shows a "Sign in" button; pressing it (a POST) does the sign-in. Scanners open links; they don't press buttons.
+
+**User enumeration** — Using a site's replies to find out who has an account ("No account with that email" vs "Link sent"). Our sign-in page gives the same answer for every address, and even for rate-limited requests.
+
+**Rate limiting** — Capping how often something can happen (3 links per address per 15 minutes) so the feature can't be used to flood someone's inbox or burn our email quota.
+
+**CSRF (cross-site request forgery)** — Once a cookie proves who you are, a malicious website could make your browser submit a form to us (e.g. "delete account") and the cookie would ride along. Defence: every form carries a hidden random **CSRF token** that only our own pages know; any POST without it is refused (400). SameSite cookies are a second layer.
+
+**Host header injection** — A request says which website it's for in its `Host` header, and an attacker can fake it. If we built email links from that header, someone could request a sign-in link for *your* email whose link points at *their* site, then capture your token when you click. So links are built from a fixed `APP_BASE_URL`.
+
+**Session fixation** — Tricking someone into using a session ID the attacker already knows, then waiting for them to sign in. Defence: start a brand-new session at the moment of sign-in (`session.clear()`).
+
+**404 vs 403 for other people's data** — 403 "Forbidden" admits the thing exists. 404 "Not found" reveals nothing, so for someone else's profile we answer 404.
+
+**OAuth 2.0** — The standard that lets one service (LinkedIn) grant another (us) limited access on a person's behalf, without sharing their password. The person approves on LinkedIn's own site; we get a **code**, swap it server-to-server (with our **client secret**) for an **access token**, and use that token. **Scopes** limit what's granted: we ask only for `openid profile email`.
+
+**OpenID Connect (OIDC)** — A thin identity layer on top of OAuth: the standard way to answer "who is this person?" It's what "Sign in with Google / Microsoft / LinkedIn / Apple" all use. Returns standard fields like `name`, `email` and `email_verified`.
+
+**Client ID / client secret** — Our app's username and password *with LinkedIn*. The ID is public (it appears in the browser's address bar); the secret never leaves our server.
+
+**Redirect URI (callback)** — Where LinkedIn sends the browser back after approval. It must match what's registered with LinkedIn exactly, which stops anyone redirecting codes to their own site.
+
+**State parameter** — A random value we send to LinkedIn and expect back unchanged. It proves the reply belongs to a sign-in *this browser* started (OAuth's version of a CSRF token).
+
+**email_verified** — LinkedIn's flag that it has confirmed the person controls that email. Because our accounts are keyed on email, we sign someone in via LinkedIn only if it's true. Otherwise anyone could add your address to a LinkedIn account and walk into yours. (LinkedIn may omit the email entirely, so we handle that case too.)
+
+**Identity provider (IdP)** — The service that vouches for who someone is: LinkedIn, Google, Microsoft Entra ID, Okta. Enterprise customers usually require **SSO** (single sign-on) through *their* IdP via OIDC or SAML. Same pattern as today, just a different provider.
+
+**Boardroom layer** — (1) **Authorisation bugs are the expensive ones.** The headline breaches are rarely "they cracked the password"; they're "a signed-in user could see other customers' data". Every "can user A touch object B?" check is a liability line item. (2) **Don't hold what you don't need.** Passwordless + OAuth means we store zero passwords, which removes a whole category of breach, password-reset support load, and compliance questions. (3) **Sign-in options are a market decision.** LinkedIn fits senior job seekers; enterprise buyers will demand SSO with their own identity provider (often a paid "enterprise tier" feature, sometimes called the "SSO tax"). Consumer apps lean Google/Apple. (4) **Platforms vouch via OAuth.** Every "integrates with Microsoft/Salesforce/Slack" partnership runs on this same dance: register an app, get a client ID/secret, request scopes, the customer approves. Partnership-relevant: app review/verification is the platform's gate, and scopes are what the platform will and won't let partners see. (5) **Build vs. buy:** most startups buy auth (Auth0/Okta, Clerk, Supabase, AWS Cognito, Microsoft Entra External ID) rather than writing it. We built it to understand it; in production, buying is usually the right call, priced per monthly active user.
